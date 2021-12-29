@@ -12,6 +12,9 @@ import * as Joi from 'joi';
         DB_USER: Joi.string().required(),
         DB_PW: Joi.string().required(),
         DB_NAME: Joi.string().required(),
+
+        CLIENT_ID: Joi.string().required(),
+        CLIENT_PW: Joi.string().required(),
       }),
     }),
   ],
