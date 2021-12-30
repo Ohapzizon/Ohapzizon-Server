@@ -20,10 +20,6 @@ export class PostService {
   }
 
   async isDayCheck(hour: number) {
-    if (8 <= hour && hour <= 14) {
-      return true;
-    } else {
-      return false;
-    }
+    return 0 <= hour && hour <= 13;
   }
 }
