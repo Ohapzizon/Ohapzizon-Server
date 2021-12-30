@@ -2,7 +2,7 @@ import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('post')
 export default class Post extends BaseEntity {
-  @PrimaryGeneratedColumn({ name: 'post_idx'})
+  @PrimaryGeneratedColumn({ name: 'post_idx' })
   idx: number;
 
   @Column({ name: 'post_title' })
@@ -15,5 +15,5 @@ export default class Post extends BaseEntity {
   contents: string;
 
   @Column({ name: 'is_day_and_night' })
-  isDayAndNight: Date;
+  isDayAndNight: boolean;
 }
