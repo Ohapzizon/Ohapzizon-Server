@@ -1,6 +1,5 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
 import Recruit from './recruit.entity';
-import { JoinColumn } from 'typeorm/browser';
 import Post from './post.entity';
 
 @Entity('user')
