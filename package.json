@@ -38,8 +38,8 @@
     "rxjs": "^7.2.0",
     "typeorm": "^0.2.41",
     "webpack": "^5.65.0",
-    "webpack-node-externals": "^3.0.0"
-    "swagger-ui-express": "^4.3.0",
+    "webpack-node-externals": "^3.0.0",
+    "swagger-ui-express": "^4.3.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",
