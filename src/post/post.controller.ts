@@ -8,11 +8,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+@ApiTags('Post')
 @Controller('/api/post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @ApiTags('Post')
   @ApiOperation({ summary: '모집글 게시' })
   @ApiResponse({
     description: '성공',
