@@ -3,10 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import Recruit from './recruit.entity';
+import User from './user.entity';
 
 @Entity('post')
 export default class Post extends BaseEntity {
@@ -29,5 +33,9 @@ export default class Post extends BaseEntity {
   createdAt: Date;
 
   @OneToOne(() => Recruit, (recruit) => recruit.post)
+  @JoinColumn({ name: 'post_recruit' })
   recruit: Recruit;
+
+  @ManyToOne(() => User, (user) => user.post)
+  user: User;
 }

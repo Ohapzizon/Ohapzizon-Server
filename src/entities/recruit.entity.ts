@@ -1,6 +1,7 @@
 import {
   BaseEntity,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -14,8 +15,10 @@ export default class Recruit extends BaseEntity {
   id: number;
 
   @ManyToOne(() => User, (user) => user.recruit)
+  @JoinColumn({ name: 'recruit_user' })
   user: User;
 
   @OneToOne(() => Post, (post) => post.recruit)
+  @JoinColumn({ name: 'recruit_post' })
   post: Post;
 }
