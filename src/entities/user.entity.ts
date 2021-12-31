@@ -10,6 +10,9 @@ export default class User {
   @Column({ unique: true, nullable: false, name: 'email' })
   email: string;
 
+  @Column({ unique: true, nullable: false, name: 'name' })
+  name: string;
+
   @OneToMany(() => UserGroup, (user_group) => user_group.user)
   @JoinColumn({ name: 'user_user_group_id' })
   user_group: UserGroup[];
