@@ -8,7 +8,7 @@ import { DayOrNight } from '../entities/day_or_night.enum';
 export class PostService {
   constructor(private readonly postRepository: PostRepository) {}
 
-  async posting({ title, contents }: PostDto) {
+  async posting({ title, contents, maxCount }: PostDto) {
     const isDayOrNight: DayOrNight = await this.isDayCheck();
     const date = new Date().toISOString().slice(0, 10);
     const post: Post = this.postRepository.create({
@@ -16,6 +16,7 @@ export class PostService {
       contents: contents,
       isDayOrNight: isDayOrNight,
       createdAt: date,
+      maxCount: maxCount,
     });
     return await this.postRepository.save(post);
   }
