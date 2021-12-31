@@ -20,15 +20,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    _accessToken: string,
-    _refreshToken: string,
+    accessToken: string,
+    refreshToken: string,
     profile: Profile,
-  ): Promise<Profile> {
+  ): Promise<User> {
     const { id, emails, displayName } = profile;
-    let user: User = null;
-    user = this.userRepository.findOne({ where: id });
-    if(!user) {
-      
+    let user: User = await this.userRepository.findOne({ id: id });
+    if (!user) {
+      user = this.userRepository.create({
+        id: id,
+        username: displayName,
+        email: emails[0].value,
+      });
+      await this.userRepository.save(user);
     }
+    return user;
   }
 }
