@@ -20,7 +20,7 @@ export class PostController {
   })
   @ApiBadRequestResponse({ description: '올바르지 않은 정보입니다.' })
   @HttpCode(HttpStatus.CREATED)
-  @Post('/recruit/recruitment')
+  @Post('/recruitment')
   async post(@Body() postDto: PostDto) {
     const data = await this.postService.posting(postDto);
     return {
