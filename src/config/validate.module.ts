@@ -14,7 +14,7 @@ import * as Joi from 'joi';
         DB_NAME: Joi.string().required(),
 
         CLIENT_ID: Joi.string().required(),
-        CLIENT_PW: Joi.string().required(),
+        CLIENT_SECRET: Joi.string().required(),
       }),
     }),
   ],
