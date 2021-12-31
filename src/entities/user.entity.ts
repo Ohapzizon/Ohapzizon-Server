@@ -14,10 +14,10 @@ export default class User {
   name: string;
 
   @OneToMany(() => Organization, (organization) => organization.user)
-  @JoinColumn({ name: 'user_organization_id' })
+  @JoinColumn({ name: 'user_organization' })
   organization: Organization[];
 
   @OneToMany(() => Post, (post) => post.user)
-  @JoinColumn({ name: 'user_post_id' })
+  @JoinColumn({ name: 'user_post' })
   post: Post[];
 }
