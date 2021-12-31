@@ -1,23 +1,20 @@
 import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
-import Recruit from './recruit.entity';
 import Post from './post.entity';
+import UserGroup from './user_group.entity';
 
 @Entity('user')
 export default class User {
-  @PrimaryColumn({ name: 'username' })
-  username: string;
+  @PrimaryColumn({ name: 'user_idx' })
+  idx: string;
 
   @Column({ unique: true, nullable: false, name: 'email' })
   email: string;
 
-  @Column({ nullable: false, name: 'password' })
-  password: string;
-
-  @OneToMany(() => Recruit, (recruit) => recruit.user)
-  @JoinColumn({ name: 'user_recruit' })
-  recruit: Recruit;
+  @OneToMany(() => UserGroup, (user_group) => user_group.user)
+  @JoinColumn({ name: 'user_user_group_id' })
+  user_group: UserGroup[];
 
   @OneToMany(() => Post, (post) => post.user)
-  @JoinColumn({ name: 'user_post' })
+  @JoinColumn({ name: 'user_post_id' })
   post: Post[];
 }
