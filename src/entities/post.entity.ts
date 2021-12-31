@@ -9,14 +9,14 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import User from './user.entity';
-import UserGroup from './user_group.entity';
+import Organization from './organization.entity';
 import Board from './board.entity';
 import { DayOrNight } from './day_or_night.enum';
 
 @Entity('post')
 export default class Post extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'post_idx' })
-  idx: number;
+  post_idx: number;
 
   @Column({ name: 'post_title' })
   title: string;
@@ -35,9 +35,9 @@ export default class Post extends BaseEntity {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @OneToMany(() => UserGroup, (user_group) => user_group.post)
-  @JoinColumn({ name: 'post_user_group' })
-  user_group: UserGroup[];
+  @OneToMany(() => Organization, (organization) => organization.post)
+  @JoinColumn({ name: 'post_organization' })
+  organization: Organization[];
 
   @ManyToOne(() => User, (user) => user.post)
   @JoinColumn({ name: 'post_user' })
@@ -45,5 +45,5 @@ export default class Post extends BaseEntity {
 
   @OneToMany(() => Board, (board) => board.post)
   @JoinColumn({ name: 'post_board' })
-  board: Board;
+  board: Board[];
 }
