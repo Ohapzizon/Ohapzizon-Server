@@ -35,6 +35,9 @@ export default class Post extends BaseEntity {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @Column({ name: 'max_count' })
+  maxCount: number;
+
   @OneToMany(() => Organization, (organization) => organization.post)
   @JoinColumn({ name: 'post_organization' })
   organization: Organization[];
