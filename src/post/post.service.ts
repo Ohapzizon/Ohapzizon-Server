@@ -26,6 +26,4 @@ export class PostService {
       return DayOrNight.DAY;
     } else return DayOrNight.NIGHT;
   }
-
-  async findPostAll(id: number) {}
 }
