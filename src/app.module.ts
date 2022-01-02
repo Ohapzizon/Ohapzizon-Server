@@ -7,6 +7,7 @@ import { DatabaseModule } from './config/database/database.module';
 import { ValidateModule } from './config/validate.module';
 import { PostModule } from './post/post.module';
 import { OrganizationModule } from './organization/organization.module';
+import { GroupModule } from './group/group.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { OrganizationModule } from './organization/organization.module';
     DatabaseModule,
     PostModule,
     OrganizationModule,
+    GroupModule,
   ],
   controllers: [AppController],
   providers: [AppService],
