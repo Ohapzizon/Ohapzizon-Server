@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { PostService } from './post.service';
 import { PostDto } from './dto/post.dto';
 import {
@@ -26,6 +34,36 @@ export class PostController {
     return {
       status: 200,
       message: '모집글을 게시하였습니다.',
+      data,
+    };
+  }
+
+  @ApiOperation({ summary: '게시글 조회' })
+  @ApiResponse({
+    description: '성공',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @Get('/recruitment')
+  async findAllPost() {
+    const data = await this.postService.findAllPost();
+    return {
+      status: 200,
+      message: '게시글 조회에 성공하였습니다.',
+      data,
+    };
+  }
+
+  @ApiOperation({ summary: '게시글 상세조회' })
+  @ApiResponse({
+    description: '성공',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @Get('/recruitment/:id')
+  async findOnePost(@Param('id') id) {
+    const data = await this.postService.findOnePost(id);
+    return {
+      status: 200,
+      message: '게시글 상세조회에 성공하였습니다.',
       data,
     };
   }
