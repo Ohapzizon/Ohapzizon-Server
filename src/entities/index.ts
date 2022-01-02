@@ -1,7 +1,7 @@
 import User from './user.entity';
 import Post from './post.entity';
-import UserGroup from './user_group.entity';
-import Group from './group.entity';
 import Board from './board.entity';
+import Organization from './organization.entity';
+import Group from './group.entity';
 
-export default [User, Post, UserGroup, Group, Board];
+export default [User, Post, Organization, Group, Board];

@@ -1,12 +1,12 @@
 import { Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import UserGroup from './user_group.entity';
+import Organization from './organization.entity';
 
 @Entity('group')
 export default class Group {
   @PrimaryGeneratedColumn({ name: 'group_idx' })
-  idx: number;
+  group_idx: number;
 
-  @OneToMany(() => UserGroup, (user_group) => user_group.group)
-  @JoinColumn({ name: 'group_user_group_id' })
-  user_group: UserGroup;
+  @OneToMany(() => Organization, (organization) => organization.group)
+  @JoinColumn({ name: 'organization_group_id' })
+  organization: Organization[];
 }
