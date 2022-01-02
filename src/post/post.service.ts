@@ -6,7 +6,6 @@ import { OrganizationRepository } from '../organization/organization.repository'
 import { FindPostDto } from './dto/findPost.dto';
 import { getRepository } from 'typeorm';
 import Organization from '../entities/organization.entity';
-import { PostDto } from './dto/post.dto';
 
 @Injectable()
 export class PostService {
@@ -32,30 +31,17 @@ export class PostService {
   }
 
   async findAllPost() {
-    const data = await this.getPosts();
-    let post = new FindPostDto();
-    const result: FindPostDto[] = [];
-    const name: string[] = [];
-
-    data.forEach((value) => {
-      post = value;
-      value.peopleList.forEach((value) => {
-        name.push(value);
-      });
-      post.peopleList = name;
-      result.push(post);
-    });
-    return result;
+    const data: FindPostDto[] = await this.getPosts();
+    return data;
   }
 
   async getPosts() {
     return getRepository(Organization)
       .createQueryBuilder('o')
       .select(
-        'post_idx, post_title, post_contents, is_day_and_night, created_at, max_count, u.name "peopleList", pu.name "author"',
+        'post_idx, post_title, post_contents, is_day_and_night, created_at, max_count, pu.name "author"',
       )
       .innerJoin('o.post', 'p')
-      .innerJoin('o.user', 'u')
       .innerJoin('p.user', 'pu')
       .getRawMany();
   }
