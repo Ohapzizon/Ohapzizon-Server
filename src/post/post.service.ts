@@ -10,7 +10,10 @@ import { PostDto } from './dto/post.dto';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly postRepository: PostRepository) {}
+  constructor(
+    private readonly postRepository: PostRepository,
+    private readonly organizationRepository: OrganizationRepository,
+  ) {}
 
   async posting({ title, contents, headCount, isDayAndNight }: PostDto) {
     const hour = new Date().getHours();
@@ -54,6 +57,33 @@ export class PostService {
       .innerJoin('o.post', 'p')
       .innerJoin('o.user', 'u')
       .innerJoin('p.user', 'pu')
+      .getRawMany();
+  }
+
+  async findOnePost(idx: number) {
+    const data = await this.organizationRepository.findOne(idx, {
+      relations: ['user', 'post'],
+    });
+    const people_data = await this.getPeopleList(data.post.post_idx);
+    const peopleList: string[] = [];
+
+    people_data.forEach((value) => {
+      peopleList.push(value.name);
+    });
+    const post = new FindPostDto();
+    post.post = data.post;
+    post.author = data.user.name;
+    post.peopleList = peopleList;
+
+    return post;
+  }
+
+  async getPeopleList(idx: number) {
+    return getRepository(Organization)
+      .createQueryBuilder('o')
+      .select('u.name', 'name')
+      .innerJoin('o.user', 'u')
+      .where('o.organization_post = :id', { id: idx })
       .getRawMany();
   }
 }
