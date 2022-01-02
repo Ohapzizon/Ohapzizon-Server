@@ -52,4 +52,19 @@ export class PostController {
       data,
     };
   }
+
+  @ApiOperation({ summary: '게시글 상세조회' })
+  @ApiResponse({
+    description: '성공',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @Get('/recruitment/:id')
+  async findOnePost(@Param('id') id) {
+    const data = await this.postService.findOnePost(id);
+    return {
+      status: 200,
+      message: '게시글 상세조회에 성공하였습니다.',
+      data,
+    };
+  }
 }
