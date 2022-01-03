@@ -5,9 +5,14 @@ import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRepository } from '../user/user.repository';
+import { TokenModule } from '../token/token.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserRepository]), PassportModule],
+  imports: [
+    TypeOrmModule.forFeature([UserRepository]),
+    PassportModule,
+    TokenModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy],
 })
