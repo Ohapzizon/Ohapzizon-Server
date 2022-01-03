@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { PostDto } from './dto/post.dto';
@@ -24,10 +25,6 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @ApiOperation({ summary: '모집글 게시' })
-  @ApiResponse({
-    description: '성공',
-    type: PostDto,
-  })
   @ApiBadRequestResponse({ description: '올바르지 않은 정보입니다.' })
   @HttpCode(HttpStatus.CREATED)
   @Post('/recruitment')
@@ -41,10 +38,7 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '게시글 조회' })
-  @ApiResponse({
-    description: '성공',
-  })
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   @Get('/recruitment')
   async findAllPost() {
     const data = await this.postService.findAllPost();
@@ -58,13 +52,13 @@ export class PostController {
   @ApiParam({
     name: 'id',
     required: true,
-    description: '불러올 페이지',
+    description: '불러올 게시글',
   })
   @ApiOperation({ summary: '게시글 상세조회' })
   @ApiResponse({
     description: '성공',
   })
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   @Get('/recruitment/:id')
   async findOnePost(@Param('id') id) {
     const data = await this.postService.findOnePost(id);
@@ -81,6 +75,8 @@ export class PostController {
     description: '삭제할 게시글',
   })
   @ApiOperation({ summary: '모집글 삭제' })
+    description: '수정할 게시글',
+  })
   @ApiResponse({
     description: '성공',
     type: PostDto,

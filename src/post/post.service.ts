@@ -79,4 +79,12 @@ export class PostService {
     const post: Post = await this.postRepository.findOne(id);
     return await this.postRepository.delete(post);
   }
+
+  async update(id: number, postDto: PostDto) {
+    const { title, contents, maxCount } = postDto;
+    return await this.postRepository.update(
+      { post_idx: id },
+      { title: title, contents: contents, maxCount: maxCount },
+    );
+  }
 }
