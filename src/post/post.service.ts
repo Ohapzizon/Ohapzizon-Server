@@ -6,6 +6,7 @@ import { FindPostDto } from './dto/findPost.dto';
 import { getRepository } from 'typeorm';
 import Organization from '../entities/organization.entity';
 import { DayOrNight } from '../entities/day_or_night.enum';
+import Post from '../entities/post.entity';
 
 @Injectable()
 export class PostService {
@@ -72,5 +73,10 @@ export class PostService {
       .innerJoin('o.user', 'u')
       .where('o.organization_post = :id', { id: idx })
       .getRawMany();
+  }
+
+  async delete(id: number) {
+    const post: Post = await this.postRepository.findOne(id);
+    return await this.postRepository.delete(post);
   }
 }
