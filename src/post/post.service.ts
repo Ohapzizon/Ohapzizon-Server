@@ -73,4 +73,12 @@ export class PostService {
       .where('o.organization_post = :id', { id: idx })
       .getRawMany();
   }
+
+  async update(id: number, postDto: PostDto) {
+    const { title, contents, maxCount } = postDto;
+    return await this.postRepository.update(
+      { post_idx: id },
+      { title: title, contents: contents, maxCount: maxCount },
+    );
+  }
 }
