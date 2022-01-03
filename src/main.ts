@@ -7,7 +7,7 @@ import { Logger } from '@nestjs/common';
 declare const module: any;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   const port: number = app.get(ConfigService).get('PORT');
   if (module.hot) {
     module.hot.accept();
