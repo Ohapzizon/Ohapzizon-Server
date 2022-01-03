@@ -55,7 +55,7 @@ export class TokenService {
 
   createAccessToken(email: string, username: string): string {
     const payload: JwtPayload = {
-      sub: username,
+      sub: email,
       username: username,
     };
     return this.jwtService.sign(payload, {

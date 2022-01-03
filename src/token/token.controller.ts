@@ -18,7 +18,7 @@ export class TokenController {
     return {
       status: 200,
       message: '토큰을 재발급하였습니다.',
-      data,
+      data: data,
     };
   }
 }

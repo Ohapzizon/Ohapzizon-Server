@@ -25,10 +25,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
   ): Promise<User> {
     const { id, emails, displayName } = profile;
-    let user: User = await this.userRepository.findOne({ id: id });
+    let user: User = await this.userRepository.findOne({ user_idx: id });
     if (!user) {
       user = this.userRepository.create({
-        id: id,
+        user_idx: id,
         username: displayName,
         email: emails[0].value,
       });

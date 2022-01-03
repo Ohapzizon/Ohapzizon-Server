@@ -1,13 +1,6 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  ParseIntPipe,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Delete, Get, UseGuards } from '@nestjs/common';
 import { GoogleAuthGuard } from './guard/google-auth.guard';
 import { UserDecorator } from '../common/decorators/user.decorator';
-import { TokenService } from '../token/token.service';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import User from '../entities/user.entity';
 import { AuthService } from './auth.service';
@@ -22,17 +15,18 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('callback')
-  async googleAuthRedirect(@UserDecorator() user) {
-    await this.authService.login(user.email, user.username);
+  async googleAuthRedirect(@UserDecorator() user: User): Promise<any> {
+    const data = await this.authService.login(user.email, user.username);
     return {
       status: 200,
       message: '구글 로그인을 성공하였습니다.',
+      data: data,
     };
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('logout')
-  async logout(@UserDecorator() user: User) {
+  async logout(@UserDecorator() user: User): Promise<any> {
     await this.authService.logout(user.user_idx);
     return {
       status: 200,

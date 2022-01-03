@@ -12,7 +12,7 @@ import { TokenController } from './token.controller';
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       signOptions: {
         algorithm: 'HS256',
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME + 's',
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME + 'm',
       },
     }),
   ],
