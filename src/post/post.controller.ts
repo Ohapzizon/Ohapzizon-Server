@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -71,21 +72,23 @@ export class PostController {
   @ApiParam({
     name: 'id',
     required: true,
+    description: '삭제할 게시글',
+  })
+  @ApiOperation({ summary: '모집글 삭제' })
     description: '수정할 게시글',
   })
-  @ApiOperation({ summary: '모집글 수정' })
   @ApiResponse({
     description: '성공',
     type: PostDto,
   })
   @ApiBadRequestResponse({ description: '올바르지 않은 정보입니다.' })
-  @HttpCode(HttpStatus.OK)
-  @Put('/recruitment/update/:id')
-  async update(@Param('id') id, @Body() postDto: PostDto) {
-    const data = await this.postService.update(id, postDto);
+  @HttpCode(HttpStatus.CREATED)
+  @Delete('/recruitment/delete/:id')
+  async delete(@Param('id') id) {
+    const data = await this.postService.delete(id);
     return {
       status: 200,
-      message: '모집글을 수정하였습니다.',
+      message: '모집글을 삭제하였습니다.',
       data,
     };
   }
