@@ -5,7 +5,7 @@ import { OrganizationRepository } from '../organization/organization.repository'
 import { FindPostDto } from './dto/findPost.dto';
 import { getRepository } from 'typeorm';
 import Organization from '../entities/organization.entity';
-import { DayOrNight } from '../entities/day_or_night.enum';
+import { DayOrNight } from '../common/types/day-or-night.enum';
 
 @Injectable()
 export class PostService {

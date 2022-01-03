@@ -84,7 +84,10 @@ export class TokenService {
     name: string,
   ): Promise<void> {
     const currentHashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.userRepository.update({ name }, { currentHashedRefreshToken });
+    await this.userRepository.update(
+      { name: name },
+      { currentHashedRefreshToken: currentHashedRefreshToken },
+    );
   }
 
   async createTokens(email: string, name: string): Promise<TokenDto> {

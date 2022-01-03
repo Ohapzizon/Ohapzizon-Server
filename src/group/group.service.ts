@@ -3,11 +3,10 @@ import { GroupRepository } from './group.repository';
 
 @Injectable()
 export class GroupService {
-  constructor(private readonly groupRepository: GroupRepository) {
-  }
+  constructor(private readonly groupRepository: GroupRepository) {}
 
-  async saveGroup(idx: number) {
-    const group = this.groupRepository.create({ idx: idx });
+  async saveGroup(idx: string) {
+    const group = this.groupRepository.create({ idx: Number(idx) });
     return this.groupRepository.save(group);
   }
 }

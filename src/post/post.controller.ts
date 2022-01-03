@@ -6,22 +6,27 @@ import {
   HttpStatus,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { PostDto } from './dto/post.dto';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @ApiTags('Post')
-@Controller('/api/post')
+@Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+  @ApiBearerAuth('accessToken')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '모집글 게시' })
   @ApiResponse({
     description: '성공',
@@ -40,10 +45,7 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '게시글 조회' })
-  @ApiResponse({
-    description: '성공',
-  })
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   @Get('/recruitment')
   async findAllPost() {
     const data = await this.postService.findAllPost();
@@ -54,16 +56,13 @@ export class PostController {
     };
   }
 
+  @ApiOperation({ summary: '게시글 상세조회' })
+  @HttpCode(HttpStatus.OK)
   @ApiParam({
     name: 'id',
     required: true,
     description: '불러올 페이지',
   })
-  @ApiOperation({ summary: '게시글 상세조회' })
-  @ApiResponse({
-    description: '성공',
-  })
-  @HttpCode(HttpStatus.CREATED)
   @Get('/recruitment/:id')
   async findOnePost(@Param('id') id) {
     const data = await this.postService.findOnePost(id);

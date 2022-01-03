@@ -4,7 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
-  async findUser(where: FindOneOptions<User>): Promise<User | undefined> {
+  async findUser(where: FindOneOptions<User>): Promise<User> {
     const user = await this.findOne(where);
     if (!user) {
       throw new NotFoundException(

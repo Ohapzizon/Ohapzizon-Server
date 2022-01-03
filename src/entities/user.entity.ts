@@ -13,11 +13,11 @@ export default class User {
 
   @Column({ unique: true, nullable: false, name: 'name' })
   name: string;
-  
+
   @Column({
-  nullable: true,
-  default: null,
-  name: 'current_hashed_refresh_token',
+    nullable: true,
+    default: null,
+    name: 'current_hashed_refresh_token',
   })
   currentHashedRefreshToken?: string;
 
