@@ -46,7 +46,10 @@ export default class Post extends BaseEntity {
   @JoinColumn({ name: 'post_user' })
   user: User;
 
-  @OneToMany(() => Board, (board) => board.post)
+  @OneToMany(() => Board, (board) => board.post, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn({ name: 'post_board' })
   board: Board[];
 }

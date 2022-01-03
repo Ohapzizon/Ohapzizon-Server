@@ -17,13 +17,20 @@ export class OrganizationService {
   ) {}
 
   async participate(idx: string) {
-    const user: User = await this.userRepository.findUser({
-      where: idx,
-    });
-    const post: Post = await this.postRepository.findPost({
-      where: idx,
-    });
-    const group: Group = await this.groupService.saveGroup(idx);
+    let user: User = null;
+    let post: Post = null;
+    let group: Group = null;
+    try {
+      user = await this.userRepository.findUser({
+        where: idx,
+      });
+      post = await this.postRepository.findPost({
+        where: idx,
+      });
+      group = await this.groupService.saveGroup(idx);
+    } catch (e) {
+      throw new NotFoundException('해당하는 게시글을 찾을 수 없습니다.');
+    }
     return this.organizationRepository.save({
       user: user,
       post: post,

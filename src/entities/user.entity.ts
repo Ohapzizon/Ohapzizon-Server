@@ -18,6 +18,7 @@ export default class User {
     nullable: true,
     default: null,
     name: 'current_hashed_refresh_token',
+    select: false,
   })
   currentHashedRefreshToken?: string;
 

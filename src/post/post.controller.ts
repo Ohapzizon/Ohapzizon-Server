@@ -20,6 +20,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { UserDecorator } from '../common/decorators/user.decorator';
+import User from '../entities/user.entity';
 
 @ApiTags('Post')
 @Controller('post')
@@ -32,12 +34,11 @@ export class PostController {
   @ApiBadRequestResponse({ description: '올바르지 않은 정보입니다.' })
   @HttpCode(HttpStatus.CREATED)
   @Post('/recruitment')
-  async post(@Body() postDto: PostDto) {
-    const data = await this.postService.posting(postDto);
+  async post(@Body() postDto: PostDto, @UserDecorator() user: User) {
+    await this.postService.posting(postDto, user);
     return {
       status: 200,
       message: '모집글을 게시하였습니다.',
-      data,
     };
   }
 
@@ -70,6 +71,8 @@ export class PostController {
     };
   }
 
+  @ApiBearerAuth('accessToken')
+  @UseGuards(JwtAuthGuard)
   @ApiParam({
     name: 'id',
     required: true,
@@ -87,6 +90,8 @@ export class PostController {
     };
   }
 
+  @ApiBearerAuth('accessToken')
+  @UseGuards(JwtAuthGuard)
   @ApiParam({
     name: 'id',
     required: true,

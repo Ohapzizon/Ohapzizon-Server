@@ -18,11 +18,17 @@ export default class Organization extends BaseEntity {
   @JoinColumn({ name: 'organization_user' })
   user: User;
 
-  @ManyToOne(() => Post, (post) => post.organization)
+  @ManyToOne(() => Post, (post) => post.organization, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn({ name: 'organization_post' })
   post: Post;
 
-  @ManyToOne(() => Group, (group) => group.organization)
+  @ManyToOne(() => Group, (group) => group.organization, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn({ name: 'organization_group_id' })
   group: Group;
 }

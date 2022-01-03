@@ -7,6 +7,7 @@ import { getRepository } from 'typeorm';
 import Organization from '../entities/organization.entity';
 import { DayOrNight } from '../common/types/day-or-night.enum';
 import Post from 'src/entities/post.entity';
+import User from '../entities/user.entity';
 
 @Injectable()
 export class PostService {
@@ -15,13 +16,17 @@ export class PostService {
     private readonly organizationRepository: OrganizationRepository,
   ) {}
 
-  async posting({ title, contents, maxCount }: PostDto) {
+  async posting(
+    { title, contents, maxCount }: PostDto,
+    user: User,
+  ): Promise<void> {
     const isDayOrNight: DayOrNight = await this.isDayCheck();
-    return await this.postRepository.save({
+    await this.postRepository.save({
       title: title,
       contents: contents,
       isDayOrNight: isDayOrNight,
       maxCount: maxCount,
+      user: user,
     });
   }
 
@@ -33,19 +38,9 @@ export class PostService {
   }
 
   async findAllPost() {
-    const data: FindPostDto[] = await this.getPosts();
-    return data;
-  }
-
-  async getPosts() {
-    return getRepository(Organization)
-      .createQueryBuilder('o')
-      .select(
-        'post_idx, post_title, post_contents, is_day_and_night, created_at, max_count, pu.name "author"',
-      )
-      .innerJoin('o.post', 'p')
-      .innerJoin('p.user', 'pu')
-      .getRawMany();
+    return await this.postRepository.find({
+      relations: ['user'],
+    });
   }
 
   async findOnePost(idx: number) {
@@ -75,16 +70,19 @@ export class PostService {
       .getRawMany();
   }
 
+  async update(idx: number, postDto: PostDto) {
+    const { title, contents, maxCount } = postDto;
+    await this.postRepository.update(
+      { post_idx: idx },
+      { title: title, contents: contents, maxCount: maxCount },
+    );
+    return await this.postRepository.findOne(idx, {
+      relations: ['user'],
+    });
+  }
+
   async delete(id: number): Promise<void> {
     const post: Post = await this.postRepository.findOne(id);
     await this.postRepository.delete(post);
-  }
-
-  async update(id: number, postDto: PostDto) {
-    const { title, contents, maxCount } = postDto;
-    return await this.postRepository.update(
-      { post_idx: id },
-      { title: title, contents: contents, maxCount: maxCount },
-    );
   }
 }

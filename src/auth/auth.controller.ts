@@ -4,6 +4,7 @@ import { UserDecorator } from '../common/decorators/user.decorator';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import User from '../entities/user.entity';
 import { AuthService } from './auth.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth/google')
 export class AuthController {
@@ -24,6 +25,7 @@ export class AuthController {
     };
   }
 
+  @ApiBearerAuth('accessToken')
   @UseGuards(JwtAuthGuard)
   @Delete('logout')
   async logout(@UserDecorator() user: User): Promise<any> {
