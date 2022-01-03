@@ -3,6 +3,7 @@ import { TokenService } from './token.service';
 import { JwtRefreshGuard } from '../auth/guard/jwt-refresh.guard';
 import { UserDecorator } from '../common/decorators/user.decorator';
 import { TokenDto } from './dto/token.dto';
+import User from '../entities/user.entity';
 
 @Controller('token')
 export class TokenController {
@@ -10,10 +11,10 @@ export class TokenController {
 
   @UseGuards(JwtRefreshGuard)
   @Get('refresh')
-  async refresh(@UserDecorator() user) {
+  async refresh(@UserDecorator() user: User) {
     const data: TokenDto = await this.tokenService.createTokens(
       user.email,
-      user.username,
+      user.name,
     );
     return {
       status: 200,

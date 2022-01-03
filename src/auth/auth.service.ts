@@ -11,8 +11,8 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async login(email: string, username: string): Promise<TokenDto> {
-    return await this.tokenService.createTokens(email, username);
+  async login(email: string, name: string): Promise<TokenDto> {
+    return await this.tokenService.createTokens(email, name);
   }
 
   async logout(idx: string): Promise<void> {
