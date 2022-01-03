@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { PostDto } from './dto/post.dto';
@@ -15,7 +17,6 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -28,10 +29,6 @@ export class PostController {
   @ApiBearerAuth('accessToken')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '모집글 게시' })
-  @ApiResponse({
-    description: '성공',
-    type: PostDto,
-  })
   @ApiBadRequestResponse({ description: '올바르지 않은 정보입니다.' })
   @HttpCode(HttpStatus.CREATED)
   @Post('/recruitment')
@@ -61,7 +58,7 @@ export class PostController {
   @ApiParam({
     name: 'id',
     required: true,
-    description: '불러올 페이지',
+    description: '불러올 게시글',
   })
   @Get('/recruitment/:id')
   async findOnePost(@Param('id') id) {
@@ -70,6 +67,38 @@ export class PostController {
       status: 200,
       message: '게시글 상세조회에 성공하였습니다.',
       data,
+    };
+  }
+
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: '수정할 게시글',
+  })
+  @ApiOperation({ summary: '모집글 수정' })
+  @HttpCode(HttpStatus.OK)
+  @Put('/recruitment/update/:id')
+  async update(@Param('id') id, @Body() postDto: PostDto) {
+    const data = await this.postService.update(id, postDto);
+    return {
+      status: 200,
+      message: '모집글을 수정하였습니다.',
+      data,
+    };
+  }
+
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: '삭제할 게시글',
+  })
+  @ApiOperation({ summary: '모집글 삭제' })
+  @Delete('/recruitment/delete/:id')
+  async delete(@Param('id') id) {
+    await this.postService.delete(id);
+    return {
+      status: 200,
+      message: '모집글을 삭제하였습니다.',
     };
   }
 }
