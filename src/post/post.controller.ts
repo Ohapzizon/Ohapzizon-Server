@@ -11,7 +11,8 @@ import { PostService } from './post.service';
 import { PostDto } from './dto/post.dto';
 import {
   ApiBadRequestResponse,
-  ApiOperation, ApiParam,
+  ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -56,7 +57,7 @@ export class PostController {
   @ApiParam({
     name: 'id',
     required: true,
-    description: '불러올 페이지'
+    description: '불러올 페이지',
   })
   @ApiOperation({ summary: '게시글 상세조회' })
   @ApiResponse({
