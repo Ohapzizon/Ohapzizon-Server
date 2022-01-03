@@ -16,12 +16,10 @@ export class PostService {
 
   async posting({ title, contents, maxCount }: PostDto) {
     const isDayOrNight: DayOrNight = await this.isDayCheck();
-    const date = new Date().toISOString().slice(0, 10);
     return await this.postRepository.save({
       title: title,
       contents: contents,
       isDayOrNight: isDayOrNight,
-      createdAt: date,
       maxCount: maxCount,
     });
   }
