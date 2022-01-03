@@ -53,10 +53,10 @@ export class TokenService {
     return jwt.verify(token, secretKey) as JwtPayload;
   }
 
-  createAccessToken(email: string, username: string): string {
+  createAccessToken(email: string, name: string): string {
     const payload: JwtPayload = {
       sub: email,
-      username: username,
+      name: name,
     };
     return this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
@@ -68,7 +68,7 @@ export class TokenService {
   async createRefreshToken(username: string): Promise<string> {
     const payload: JwtPayload = {
       sub: null,
-      username: null,
+      name: null,
     };
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_TOKEN_SECRET,
@@ -81,20 +81,17 @@ export class TokenService {
 
   async setHashedRefreshToken(
     refreshToken: string,
-    username: string,
+    name: string,
   ): Promise<void> {
     const currentHashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.userRepository.update(
-      { username },
-      { currentHashedRefreshToken },
-    );
+    await this.userRepository.update({ name }, { currentHashedRefreshToken });
   }
 
-  async createTokens(email: string, username: string): Promise<TokenDto> {
-    const accessToken: string = this.createAccessToken(email, username);
-    const refreshToken: string = await this.createRefreshToken(username);
+  async createTokens(email: string, name: string): Promise<TokenDto> {
+    const accessToken: string = this.createAccessToken(email, name);
+    const refreshToken: string = await this.createRefreshToken(name);
     return {
-      username: username,
+      name: name,
       accessToken: 'Bearer ' + accessToken,
       refreshToken: 'Bearer ' + refreshToken,
     };

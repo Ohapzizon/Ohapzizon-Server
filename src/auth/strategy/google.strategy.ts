@@ -29,7 +29,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     if (!user) {
       user = this.userRepository.create({
         user_idx: id,
-        username: displayName,
+        name: displayName,
         email: emails[0].value,
       });
       await this.userRepository.save(user);

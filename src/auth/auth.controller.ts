@@ -16,7 +16,7 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('callback')
   async googleAuthRedirect(@UserDecorator() user: User): Promise<any> {
-    const data = await this.authService.login(user.email, user.username);
+    const data = await this.authService.login(user.email, user.name);
     return {
       status: 200,
       message: '구글 로그인을 성공하였습니다.',
