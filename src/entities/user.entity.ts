@@ -1,23 +1,33 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import Post from './post.entity';
+import Organization from './organization.entity';
 import * as bcrypt from 'bcrypt';
 
-@Entity()
+@Entity('user')
 export default class User {
-  @PrimaryColumn()
+  @PrimaryColumn({ name: 'user_idx' })
   user_idx: string;
 
-  @Column()
-  username: string;
-
-  @Column()
+  @Column({ unique: true, nullable: false, name: 'email' })
   email: string;
 
+  @Column({ unique: true, nullable: false, name: 'name' })
+  name: string;
+  
   @Column({
-    name: 'current_hashed_refresh_token',
-    nullable: true,
-    default: null,
+  nullable: true,
+  default: null,
+  name: 'current_hashed_refresh_token',
   })
   currentHashedRefreshToken?: string;
+
+  @OneToMany(() => Organization, (organization) => organization.user)
+  @JoinColumn({ name: 'user_organization' })
+  organization: Organization[];
+
+  @OneToMany(() => Post, (post) => post.user)
+  @JoinColumn({ name: 'user_post' })
+  post: Post[];
 
   async checkRefreshToken(plainRefreshToken: string): Promise<boolean> {
     return await bcrypt.compare(
