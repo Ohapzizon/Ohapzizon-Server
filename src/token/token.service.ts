@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserRepository } from '../user/user.repository';
-import { JwtPayload } from '../common/types/JwtPayload';
+import { JwtPayload } from '../common/types/jwt-payload';
 import { JwtService } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
 import { TokenDto } from './dto/token.dto';
