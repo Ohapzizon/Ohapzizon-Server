@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Res, UseGuards } from '@nestjs/common';
 import { GoogleAuthGuard } from './guard/google-auth.guard';
 import { UserDecorator } from '../common/decorators/user.decorator';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
@@ -16,13 +16,16 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('callback')
-  async googleAuthRedirect(@UserDecorator() user: User): Promise<any> {
+  async googleAuthRedirect(
+    @UserDecorator() user: User,
+    @Res() res,
+  ): Promise<any> {
     const data = await this.authService.login(user.email, user.name);
-    return {
+    res.body({
       status: 200,
       message: '구글 로그인을 성공하였습니다.',
       data: data,
-    };
+    });
   }
 
   @ApiBearerAuth('accessToken')
