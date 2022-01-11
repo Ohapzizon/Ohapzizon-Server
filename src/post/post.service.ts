@@ -82,7 +82,9 @@ export class PostService {
   }
 
   async delete(id: number): Promise<void> {
-    const post: Post = await this.postRepository.findOne(id);
+    const post: Post = await this.postRepository.findPost({
+      where: id.toString(),
+    });
     await this.postRepository.delete(post);
   }
 }
