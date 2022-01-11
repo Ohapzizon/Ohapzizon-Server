@@ -14,9 +14,7 @@ export class PostRepository extends Repository<Post> {
   async findPost(where: FindOneOptions<Post>): Promise<Post> {
     const post = await this.findOne(where);
     if (!post) {
-      throw new NotFoundException(
-        `There isn't any user with identifier: ${where}`,
-      );
+      throw new NotFoundException(`해당하는 게시글이 존재하지않습니다.`);
     }
     return post;
   }

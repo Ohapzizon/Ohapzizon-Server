@@ -7,9 +7,7 @@ export class UserRepository extends Repository<User> {
   async findUser(where: FindOneOptions<User>): Promise<User> {
     const user = await this.findOne(where);
     if (!user) {
-      throw new NotFoundException(
-        `There isn't any user with identifier: ${where}`,
-      );
+      throw new NotFoundException(`해당하는 사용자가 존재않습니다.`);
     }
     return user;
   }

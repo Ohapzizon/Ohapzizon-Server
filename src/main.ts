@@ -8,7 +8,7 @@ declare const module: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: { credentials: true, origin: 'http://localhost:3000' },
+    cors: { credentials: true, origin: 'http://localhost:8000' },
   });
   const port: number = app.get(ConfigService).get('PORT');
   if (module.hot) {

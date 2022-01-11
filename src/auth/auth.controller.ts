@@ -5,14 +5,23 @@ import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import User from '../entities/user.entity';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth/google')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  @UseGuards(GoogleAuthGuard)
   @Get('')
-  async googleAuth() {}
+  async googleAuth() {
+    const hostName = 'https://accounts.google.com';
+    const clientID = this.configService.get<string>('CLIENT_ID');
+    const callbackURL = this.configService.get<string>('CALLBACK_URL');
+    const scope = 'email+profile'; // URL 인코딩 시 스페이스는 "+" 혹은 "%20"으로 표현된다.
+    return `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${callbackURL}&scope=${scope}&client_id=${clientID}`;
+  }
 
   @UseGuards(GoogleAuthGuard)
   @Get('callback')
