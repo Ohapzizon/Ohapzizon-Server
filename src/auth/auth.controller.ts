@@ -5,27 +5,33 @@ import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import User from '../entities/user.entity';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth/google')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  @UseGuards(GoogleAuthGuard)
   @Get('')
-  async googleAuth() {}
+  async googleAuth() {
+    const hostName = 'https://accounts.google.com';
+    const clientID = this.configService.get<string>('CLIENT_ID');
+    const callbackURL = this.configService.get<string>('CALLBACK_URL');
+    const scope = 'email' + 'profile';
+    return `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${callbackURL}&scope=${scope}&client_id=${clientID}`;
+  }
 
   @UseGuards(GoogleAuthGuard)
   @Get('callback')
-  async googleAuthRedirect(
-    @UserDecorator() user: User,
-    @Res() res,
-  ): Promise<any> {
+  async googleAuthRedirect(@UserDecorator() user: User): Promise<any> {
     const data = await this.authService.login(user.email, user.name);
-    res.body({
+    return {
       status: 200,
       message: '구글 로그인을 성공하였습니다.',
       data: data,
-    });
+    };
   }
 
   @ApiBearerAuth('accessToken')
