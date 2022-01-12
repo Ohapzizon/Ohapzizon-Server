@@ -1,5 +1,4 @@
-import { Controller, Delete, Get, UseGuards } from '@nestjs/common';
-import { GoogleAuthGuard } from './guard/google-auth.guard';
+import { Controller, Delete, Get, Res, UseGuards } from '@nestjs/common';
 import { UserDecorator } from '../common/decorators/user.decorator';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import User from '../entities/user.entity';
@@ -15,15 +14,16 @@ export class AuthController {
   ) {}
 
   @Get('')
-  async googleAuth() {
+  async googleAuth(@Res() res) {
     const hostName = 'https://accounts.google.com';
     const clientID = this.configService.get<string>('CLIENT_ID');
     const callbackURL = this.configService.get<string>('CALLBACK_URL');
     const scope = 'email+profile'; // URL 인코딩 시 스페이스는 "+" 혹은 "%20"으로 표현된다.
-    return `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${callbackURL}&scope=${scope}&client_id=${clientID}`;
+    res.redirect(
+      `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${callbackURL}&scope=${scope}&client_id=${clientID}`,
+    );
   }
 
-  @UseGuards(GoogleAuthGuard)
   @Get('callback')
   async googleAuthRedirect(@UserDecorator() user: User): Promise<any> {
     const data = await this.authService.login(user.email, user.name);
