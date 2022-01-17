@@ -8,7 +8,6 @@ import {
 import { TokenService } from './token.service';
 import { JwtRefreshGuard } from '../auth/guard/jwt-refresh.guard';
 import { UserDecorator } from '../common/decorators/user.decorator';
-import { TokenDto } from './dto/token.dto';
 import User from '../entities/user.entity';
 import {
   ApiBearerAuth,
@@ -23,7 +22,7 @@ export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
 
   @ApiOperation({ summary: '토큰 재발급' })
-  @ApiBearerAuth('AccessToken')
+  @ApiBearerAuth('accessToken')
   @ApiHeader({
     name: 'refresh',
     required: true,
@@ -33,14 +32,19 @@ export class TokenController {
   @UseGuards(JwtRefreshGuard)
   @Get('refresh')
   async refresh(@UserDecorator() user: User) {
-    const data: TokenDto = await this.tokenService.createTokens(
+    const accessToken = this.tokenService.createAccessToken(
       user.email,
       user.name,
     );
+    const refreshToken = this.tokenService.createRefreshToken(user.name);
     return {
       status: 200,
       message: '토큰을 재발급하였습니다.',
-      data: data,
+      data: {
+        username: user.name,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      },
     };
   }
 }

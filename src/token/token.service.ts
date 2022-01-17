@@ -8,7 +8,6 @@ import { UserRepository } from '../user/user.repository';
 import { JwtPayload } from '../common/types/jwt-payload';
 import { JwtService } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
-import { TokenDto } from './dto/token.dto';
 import * as bcrypt from 'bcrypt';
 import User from '../entities/user.entity';
 
@@ -88,15 +87,5 @@ export class TokenService {
       { name: name },
       { currentHashedRefreshToken: currentHashedRefreshToken },
     );
-  }
-
-  async createTokens(email: string, name: string): Promise<TokenDto> {
-    const accessToken: string = this.createAccessToken(email, name);
-    const refreshToken: string = await this.createRefreshToken(name);
-    return {
-      name: name,
-      accessToken: 'Bearer ' + accessToken,
-      refreshToken: 'Bearer ' + refreshToken,
-    };
   }
 }

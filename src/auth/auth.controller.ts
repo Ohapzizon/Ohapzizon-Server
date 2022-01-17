@@ -23,16 +23,13 @@ import {
 } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { GoogleCodeDto } from './dto/google-code.dto';
-import { UserService } from '../user/user.service';
 import { TokenService } from '../token/token.service';
-import { TokenDto } from '../token/dto/token.dto';
 
 @ApiTags('Authentication')
 @Controller('auth/google')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly tokenService: TokenService,
   ) {}
@@ -56,14 +53,19 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('')
   async googleAuthRedirect(@Body() googleCodeDto: GoogleCodeDto) {
-    const { email, name } = await this.userService.getGoogleUserInfo(
+    const { email, name } = await this.authService.getGoogleUserInfo(
       googleCodeDto,
     );
-    const data: TokenDto = await this.tokenService.createTokens(email, name);
+    const accessToken = this.tokenService.createAccessToken(email, name);
+    const refreshToken = await this.tokenService.createRefreshToken(name);
     return {
       status: 200,
       message: '구글 로그인을 성공하였습니다.',
-      data,
+      data: {
+        username: name,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      },
     };
   }
 
