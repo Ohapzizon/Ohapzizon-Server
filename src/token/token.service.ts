@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserRepository } from '../user/user.repository';
-import { JwtPayload } from '../common/types/jwt-payload';
+import { IJwtPayload } from '../common/interfaces/jwt-payload';
 import { JwtService } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
@@ -19,10 +19,10 @@ export class TokenService {
   ) {}
 
   async validateToken(token: string, isRefresh = false): Promise<User> {
-    let verify: JwtPayload = null;
+    let verify: IJwtPayload = null;
     let user: User = null;
     try {
-      verify = this.verify(token) as JwtPayload;
+      verify = this.verify(token) as IJwtPayload;
       user = await this.userRepository.findOne({ email: verify.sub });
       if (isRefresh) {
         await user.checkRefreshToken(token);
@@ -47,13 +47,13 @@ export class TokenService {
     }
   }
 
-  verify(token: string): JwtPayload {
+  verify(token: string): IJwtPayload {
     const secretKey: string = process.env.JWT_ACCESS_TOKEN_SECRET;
-    return jwt.verify(token, secretKey) as JwtPayload;
+    return jwt.verify(token, secretKey) as IJwtPayload;
   }
 
   createAccessToken(email: string, name: string): string {
-    const payload: JwtPayload = {
+    const payload: IJwtPayload = {
       sub: email,
       name: name,
     };
@@ -65,7 +65,7 @@ export class TokenService {
   }
 
   async createRefreshToken(username: string): Promise<string> {
-    const payload: JwtPayload = {
+    const payload: IJwtPayload = {
       sub: null,
       name: null,
     };
