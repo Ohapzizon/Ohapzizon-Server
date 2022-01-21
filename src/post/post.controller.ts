@@ -71,6 +71,23 @@ export class PostController {
     };
   }
 
+  @ApiOperation({ summary: '신청 목록 조회' })
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'idx',
+    required: true,
+    description: '신청 목록',
+  })
+  @Get('/recruitment/people-list/:idx')
+  async getPeopleList(@Param('idx') id) {
+    const data = await this.postService.getPeopleList(id);
+    return {
+      status: 200,
+      message: '신청 목록 조회에 성공하였습니다.',
+      data,
+    };
+  }
+
   @ApiBearerAuth('accessToken')
   @UseGuards(JwtAuthGuard)
   @ApiParam({
