@@ -58,9 +58,7 @@ export class TokenService {
   async verify(token: string, refreshToken?: string, isRefresh = false) {
     const secretKey: string = process.env.JWT_ACCESS_TOKEN_SECRET;
     const verify: IJwtPayload = jwt.verify(token, secretKey) as IJwtPayload;
-    if (isRefresh) {
-      jwt.verify(refreshToken, secretKey);
-    }
+    if (isRefresh) jwt.verify(refreshToken, secretKey);
     return await this.userRepository.findUser({ where: { email: verify.sub } });
   }
 
