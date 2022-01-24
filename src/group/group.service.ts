@@ -5,8 +5,8 @@ import { GroupRepository } from './group.repository';
 export class GroupService {
   constructor(private readonly groupRepository: GroupRepository) {}
 
-  async saveGroup(idx: string) {
-    const group = this.groupRepository.create({ idx: Number(idx) });
+  async saveGroup() {
+    const group = this.groupRepository.create();
     return this.groupRepository.save(group);
   }
 }
