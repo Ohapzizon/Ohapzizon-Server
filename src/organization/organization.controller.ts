@@ -24,7 +24,7 @@ export class OrganizationController {
   @ApiBearerAuth('accessToken')
   @UseGuards(JwtAuthGuard)
   @ApiParam({
-    name: 'id',
+    name: 'idx',
     required: true,
     description: '땡길 게시글',
   })
