@@ -1,4 +1,4 @@
-import { Injectable, Post } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PostRepository } from './post.repository';
 import { PostDto } from './dto/post.dto';
 import { OrganizationRepository } from '../organization/organization.repository';
@@ -48,10 +48,21 @@ export class PostService {
   }
 
   async update(idx: number, postDto: PostDto) {
-    return await this.postRepository.updatePost(idx, postDto);
+    const { title, contents, maxCount } = postDto;
+
+    await this.postRepository.findPost({
+      where: { post_idx: idx },
+    });
+    await this.postRepository.update(
+      { post_idx: idx },
+      { title: title, contents: contents, maxCount: maxCount },
+    );
   }
 
-  async delete(id: number): Promise<void> {
-    await this.postRepository.deletePost(id);
+  async delete(idx: number): Promise<void> {
+    await this.postRepository.findPost({
+      where: { post_idx: idx },
+    });
+    await this.postRepository.delete({ post_idx: idx });
   }
 }
