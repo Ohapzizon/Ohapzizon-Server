@@ -5,8 +5,8 @@ import * as bcrypt from 'bcrypt';
 
 @Entity('user')
 export default class User {
-  @PrimaryColumn({ name: 'user_idx' })
-  user_idx: string;
+  @PrimaryColumn({ name: 'user_id' })
+  user_id: string;
 
   @Column({ unique: true, nullable: false, name: 'email' })
   email: string;
