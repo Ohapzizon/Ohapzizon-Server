@@ -2,11 +2,12 @@ import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
 import Post from './post.entity';
 import Organization from './organization.entity';
 import * as bcrypt from 'bcrypt';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Entity('user')
 export default class User {
-  @PrimaryColumn({ name: 'user_idx' })
-  user_idx: string;
+  @PrimaryColumn({ name: 'user_id' })
+  user_id: string;
 
   @Column({ unique: true, nullable: false, name: 'email' })
   email: string;
@@ -18,7 +19,6 @@ export default class User {
     nullable: true,
     default: null,
     name: 'current_hashed_refresh_token',
-    select: false,
   })
   currentHashedRefreshToken?: string;
 
@@ -31,13 +31,13 @@ export default class User {
   post: Post[];
 
   async checkRefreshToken(plainRefreshToken: string): Promise<boolean> {
-    return await bcrypt.compare(
-      plainRefreshToken,
-      this.currentHashedRefreshToken,
-    );
-  }
-
-  async removeRefreshToken() {
-    return (this.currentHashedRefreshToken = null);
+    try {
+      return await bcrypt.compare(
+        plainRefreshToken,
+        this.currentHashedRefreshToken,
+      );
+    } catch (e) {
+      throw new UnauthorizedException('invalid token');
+    }
   }
 }

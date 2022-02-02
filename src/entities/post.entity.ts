@@ -11,7 +11,7 @@ import {
 import User from './user.entity';
 import Organization from './organization.entity';
 import Board from './board.entity';
-import { DayOrNight } from '../common/types/day-or-night.enum';
+import { DayOrNight } from '../post/types/day-or-night.enum';
 
 @Entity('post')
 export default class Post extends BaseEntity {
