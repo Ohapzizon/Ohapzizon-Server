@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
   Put,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { PostDto } from './dto/post.dto';
@@ -62,7 +63,7 @@ export class PostController {
     description: '불러올 게시글',
   })
   @Get('/recruitment/:id')
-  async findOnePost(@Param('id') id) {
+  async findOnePost(@Param('id', ParseIntPipe) id: number) {
     const data = await this.postService.findOnePost(id);
     return {
       status: 200,
@@ -98,7 +99,10 @@ export class PostController {
   @ApiOperation({ summary: '모집글 수정' })
   @HttpCode(HttpStatus.OK)
   @Put('/recruitment/update/:id')
-  async update(@Param('id') id, @Body() postDto: PostDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() postDto: PostDto,
+  ) {
     const data = await this.postService.update(id, postDto);
     return {
       status: 200,
@@ -116,7 +120,7 @@ export class PostController {
   })
   @ApiOperation({ summary: '모집글 삭제' })
   @Delete('/recruitment/delete/:id')
-  async delete(@Param('id') id) {
+  async delete(@Param('id', ParseIntPipe) id: number) {
     await this.postService.delete(id);
     return {
       status: 200,
