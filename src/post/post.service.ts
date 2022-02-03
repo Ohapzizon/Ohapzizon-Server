@@ -4,12 +4,14 @@ import { PostDto } from './dto/post.dto';
 import { OrganizationRepository } from '../organization/organization.repository';
 import { DayOrNight } from '../common/types/day-or-night.enum';
 import User from '../entities/user.entity';
+import { GroupRepository } from '../group/group.repository';
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly postRepository: PostRepository,
     private readonly organizationRepository: OrganizationRepository,
+    private readonly groupRepository: GroupRepository,
   ) {}
 
   async posting(
@@ -17,6 +19,7 @@ export class PostService {
     user: User,
   ): Promise<void> {
     const isDayOrNight: DayOrNight = await this.isDayCheck();
+    await this.groupRepository.save(this.groupRepository.create());
     await this.postRepository.save({
       title: title,
       contents: contents,
