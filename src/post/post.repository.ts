@@ -19,18 +19,12 @@ export class PostRepository extends Repository<Post> {
   }
 
   async getPeopleList(idx: number) {
-    const peopleList: string[] = await getRepository(Organization)
+    return await getRepository(Organization)
       .createQueryBuilder('o')
       .select('u.name', 'name')
       .innerJoin('o.user', 'u')
       .where('o.organization_post = :id', { id: idx })
       .getRawMany();
-    if (!peopleList) {
-      throw new NotFoundException(
-        `There isn't any user with identifier: ${idx}`,
-      );
-    }
-    return peopleList;
   }
 
   async findOnePost(idx: number) {
