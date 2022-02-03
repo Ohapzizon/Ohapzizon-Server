@@ -4,15 +4,13 @@ import { UserAlreadyExistsException } from '../config/exception/user-already-exi
 
 @EntityRepository(Organization)
 export class OrganizationRepository extends Repository<Organization> {
-  async findUser(user_: string) {
+  async userExistsCheck(currentUser: string, currentPost: number) {
     const organization: Organization = await this.findOne({
-      where: { user: user_ },
+      where: { post: currentPost },
       relations: ['user'],
     });
-    if (organization) {
-      if (organization.user.user_idx == user_) {
-        throw new UserAlreadyExistsException();
-      }
-    }
+    const { user_idx } = organization.user;
+    if (organization)
+      if (user_idx == currentUser) throw new UserAlreadyExistsException();
   }
 }
