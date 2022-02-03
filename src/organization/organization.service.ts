@@ -1,11 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PostRepository } from '../post/post.repository';
 import { UserRepository } from '../user/user.repository';
 import { OrganizationRepository } from './organization.repository';
-import { GroupService } from '../group/group.service';
 import User from '../entities/user.entity';
-import Post from '../entities/post.entity';
-import Group from '../entities/group.entity';
+import { GroupRepository } from '../group/group.repository';
 
 @Injectable()
 export class OrganizationService {
@@ -13,29 +11,22 @@ export class OrganizationService {
     private readonly organizationRepository: OrganizationRepository,
     private readonly postRepository: PostRepository,
     private readonly userRepository: UserRepository,
-    private readonly groupService: GroupService,
+    private readonly groupRepository: GroupRepository,
   ) {}
 
-  async participate(idx: number) {
-    let user: User = null;
-    let post: Post = null;
-    let group: Group = null;
-    try {
-      user = await this.userRepository.findUser({
-        where: { user_idx: idx },
-      });
-      post = await this.postRepository.findPost({
-        where: { post_idx: idx },
-      });
-      group = await this.groupService.saveGroup();
-    } catch (e) {
-      throw new NotFoundException('해당하는 게시글을 찾을 수 없습니다.');
-    }
-    await this.organizationRepository.findUser(user.user_idx);
+  async participate(idx: number, user: User) {
+    const post = await this.postRepository.findPost({
+      where: { post_idx: idx },
+    });
+    await this.organizationRepository.userExistsCheck(
+      user.user_idx,
+      post.post_idx,
+    );
+    const group = await this.groupRepository.findOne(idx);
     await this.organizationRepository.save({
-      user: user,
-      post: post,
-      group: group,
+      user,
+      post,
+      group,
     });
   }
 }
