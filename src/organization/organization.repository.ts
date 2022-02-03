@@ -9,8 +9,8 @@ export class OrganizationRepository extends Repository<Organization> {
       where: { post: currentPost },
       relations: ['user'],
     });
-    const { user_idx } = organization.user;
+    const savedUser = organization.user.user_idx;
     if (organization)
-      if (user_idx == currentUser) throw new UserAlreadyExistsException();
+      if (savedUser == currentUser) throw new UserAlreadyExistsException();
   }
 }
