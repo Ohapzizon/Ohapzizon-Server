@@ -5,10 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostRepository } from './post.repository';
 import { OrganizationRepository } from '../organization/organization.repository';
 import { TokenModule } from '../token/token.module';
+import { GroupRepository } from '../group/group.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PostRepository, OrganizationRepository]),
+    TypeOrmModule.forFeature([
+      PostRepository,
+      OrganizationRepository,
+      GroupRepository,
+    ]),
     TokenModule,
   ],
   controllers: [PostController],
