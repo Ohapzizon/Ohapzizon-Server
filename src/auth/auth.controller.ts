@@ -21,29 +21,19 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
 import { GoogleCodeDto } from './dto/google-code.dto';
-import { TokenService } from '../token/token.service';
+import BaseResponse from '../common/response/base.response';
+import LoginResponseData from './dto/login-response.dto';
 
 @ApiTags('Authentication')
 @Controller('auth/google')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly configService: ConfigService,
-    private readonly tokenService: TokenService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: '구글 인증 페이지 리다이렉션' })
   @Get('')
-  async googleAuth(@Res() res) {
-    const hostName = 'https://accounts.google.com';
-    const clientID = this.configService.get<string>('CLIENT_ID');
-    const callbackURL = this.configService.get<string>('CALLBACK_URL');
-    const scope = 'email+profile'; // URL 인코딩 시 "+"은 "%20"으로 표현된다.
-    res.redirect(
-      `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${callbackURL}&scope=${scope}&client_id=${clientID}`,
-    );
+  getOAuthRedirectURL(@Res() res): void {
+    return this.authService.getOAuthRedirectURL(res);
   }
 
   @ApiOperation({ summary: '구글 로그인' })
@@ -52,21 +42,15 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: '구글 인증에 실패했습니다.' })
   @HttpCode(HttpStatus.OK)
   @Post('')
-  async googleAuthRedirect(@Body() googleCodeDto: GoogleCodeDto) {
-    const { email, name } = await this.authService.getGoogleUserInfo(
-      googleCodeDto,
+  async logIn(
+    @Body() googleCodeDto: GoogleCodeDto,
+  ): Promise<BaseResponse<LoginResponseData>> {
+    const data: LoginResponseData = await this.authService.logIn(googleCodeDto);
+    return new BaseResponse<LoginResponseData>(
+      HttpStatus.OK,
+      '구글 로그인을 성공하였습니다.',
+      data,
     );
-    const accessToken = this.tokenService.createAccessToken(email, name);
-    const refreshToken = await this.tokenService.createRefreshToken(name);
-    return {
-      status: 200,
-      message: '구글 로그인을 성공하였습니다.',
-      data: {
-        username: name,
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      },
-    };
   }
 
   @ApiOperation({ summary: '로그아웃' })
@@ -74,11 +58,8 @@ export class AuthController {
   @ApiBearerAuth('accessToken')
   @UseGuards(JwtAuthGuard)
   @Delete('logout')
-  async logout(@UserDecorator() user: User) {
-    await this.authService.logout(user.user_idx);
-    return {
-      status: 200,
-      message: '로그아웃을 성공하였습니다.',
-    };
+  async logout(@UserDecorator() user: User): Promise<BaseResponse<void>> {
+    await this.authService.logOut(user.user_id);
+    return new BaseResponse<void>(HttpStatus.OK, '로그아웃을 성공하였습니다.');
   }
 }

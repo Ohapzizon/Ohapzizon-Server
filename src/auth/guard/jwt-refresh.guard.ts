@@ -13,14 +13,18 @@ export class JwtRefreshGuard extends AuthGuard('jwt-refresh-token') {
   }
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const { refresh } = request.headers;
-
-    if (refresh === undefined) {
+    const { refresh, authorization } = request.headers;
+    if (!authorization)
+      throw new BadRequestException('Authorization 헤더가 비어있습니다.');
+    else if (!refresh)
       throw new BadRequestException('RefreshToken 헤더가 비어있습니다.');
-    }
-
-    const refreshToken = refresh.replace('Bearer ', '');
-    request.user = this.tokenService.validateToken(refreshToken, true);
+    const accessToken = authorization.split(' ')[1];
+    const refreshToken = refresh.split(' ')[1];
+    request.user = this.tokenService.validateToken(
+      accessToken,
+      refreshToken,
+      true,
+    );
     return true;
   }
 }
