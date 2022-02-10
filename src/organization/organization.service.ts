@@ -19,7 +19,7 @@ export class OrganizationService {
       where: { post_idx: idx },
     });
     await this.organizationRepository.userExistsCheck(
-      user.user_idx,
+      user.user_id,
       post.post_idx,
     );
     const group = await this.groupRepository.findOne(idx);
