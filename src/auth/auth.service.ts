@@ -1,4 +1,4 @@
-import { Injectable, Logger, Res, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserRepository } from '../user/user.repository';
 import User from '../entities/user.entity';
 import { GoogleCodeDto } from './dto/google-code.dto';
