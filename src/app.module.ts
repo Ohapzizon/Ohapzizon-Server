@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { DatabaseModule } from './config/database/database.module';
@@ -18,7 +17,5 @@ import { GroupModule } from './group/group.module';
     OrganizationModule,
     GroupModule,
   ],
-  controllers: [],
-  providers: [AppService],
 })
 export class AppModule {}
