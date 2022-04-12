@@ -23,7 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { GoogleCodeDto } from './dto/google-code.dto';
 import BaseResponse from '../common/response/base.response';
-import LoginResponseData from './dto/login-response.dto';
+import LoginResponseData, { LoginResponse } from './response/login.response';
 
 @ApiTags('Authentication')
 @Controller('auth/google')
@@ -42,11 +42,9 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: '구글 인증에 실패했습니다.' })
   @HttpCode(HttpStatus.OK)
   @Post('')
-  async logIn(
-    @Body() googleCodeDto: GoogleCodeDto,
-  ): Promise<BaseResponse<LoginResponseData>> {
+  async logIn(@Body() googleCodeDto: GoogleCodeDto): Promise<LoginResponse> {
     const data: LoginResponseData = await this.authService.logIn(googleCodeDto);
-    return new BaseResponse<LoginResponseData>(
+    return new LoginResponse(
       HttpStatus.OK,
       '구글 로그인을 성공하였습니다.',
       data,
@@ -57,9 +55,9 @@ export class AuthController {
   @ApiOkResponse({ description: '로그아웃 성공(Refresh 토큰 삭제)' })
   @ApiBearerAuth('accessToken')
   @UseGuards(JwtAuthGuard)
-  @Delete('logout')
+  @Delete('')
   async logout(@UserDecorator() user: User): Promise<BaseResponse<void>> {
-    await this.authService.logOut(user.user_id);
+    await this.authService.logOut(user.userId);
     return new BaseResponse<void>(HttpStatus.OK, '로그아웃을 성공하였습니다.');
   }
 }
