@@ -1,4 +1,5 @@
-export interface IJwtPayload {
+export interface JwtPayload {
+  [key: string]: any;
   iss?: string | undefined;
   sub?: string | undefined;
   aud?: string | string[] | undefined;
