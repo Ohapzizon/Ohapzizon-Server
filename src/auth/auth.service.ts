@@ -1,7 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { GoogleCodeDto } from './dto/google-code.dto';
 import axios, { AxiosResponse } from 'axios';
-import { IGoogleUser } from '../common/types/google-user.types';
+import { IGoogleUser } from './types/google-user.types';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from '../token/token.service';
 import LoginResponseDto from './response/login.response';
