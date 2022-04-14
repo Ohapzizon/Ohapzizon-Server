@@ -16,7 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import BaseResponse from '../common/response/base.response';
-import ReissuanceDto from './dto/reissuance.dto';
+import ReissuanceResponse from './response/reissuance.response';
 
 @ApiTags('Refresh')
 @Controller('token')
@@ -33,12 +33,13 @@ export class TokenController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshGuard)
   @Get('refresh')
-  refresh(@UserDecorator() user: User): BaseResponse<ReissuanceDto> {
+  refresh(@UserDecorator() user: User): BaseResponse<ReissuanceResponse> {
     const token: string = this.tokenService.createAccessToken(
+      user.userId,
       user.email,
       user.name,
     );
-    return new BaseResponse<ReissuanceDto>(
+    return new BaseResponse<ReissuanceResponse>(
       HttpStatus.OK,
       '토큰을 재발급하였습니다.',
       { token },
