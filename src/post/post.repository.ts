@@ -1,40 +1,28 @@
 import {
   EntityRepository,
-  FindOneOptions,
   getRepository,
   Repository,
+  SelectQueryBuilder,
 } from 'typeorm';
 import Post from '../entities/post.entity';
-import { NotFoundException } from '@nestjs/common';
-import Organization from '../entities/organization.entity';
+import { PostDto } from './dto/post.dto';
+import { plainToClass } from 'class-transformer';
 
 @EntityRepository(Post)
 export class PostRepository extends Repository<Post> {
-  async findPost(where: FindOneOptions<Post>): Promise<Post> {
-    const post = await this.findOne(where);
-    if (!post) {
-      throw new NotFoundException(`해당하는 게시글이 존재하지않습니다.`);
-    }
-    return post;
+  async findAllPost(): Promise<PostDto[]> {
+    const row = await this.findPost().getRawMany();
+    return plainToClass(PostDto, row);
   }
 
-  async getPeopleList(idx: number) {
-    return await getRepository(Organization)
-      .createQueryBuilder('o')
-      .select('u.name', 'name')
-      .innerJoin('o.user', 'u')
-      .where('o.organization_post = :id', { id: idx })
-      .getRawMany();
+  async findOnePostByIdx(idx: number): Promise<PostDto> {
+    const row = await this.findPost()
+      .where('p.post_idx = :idx', { idx: idx })
+      .getRawOne();
+    return plainToClass(PostDto, row);
   }
 
-  async findOnePost(idx: number) {
-    return await getRepository(Post)
-      .createQueryBuilder('p')
-      .select(
-        'p.post_idx, p.title, p.contents, p.isDayOrNight, p.createdAt, p.maxCount, u.name "author"',
-      )
-      .innerJoin('p.user', 'u')
-      .where('p.post_idx = :id', { id: idx })
-      .execute();
+  private findPost(): SelectQueryBuilder<Post> {
+    return getRepository(Post).createQueryBuilder('p').select('*');
   }
 }
