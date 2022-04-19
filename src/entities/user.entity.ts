@@ -1,43 +1,32 @@
-import { Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
-import Post from './post.entity';
+import { Column, Entity, OneToOne, PrimaryColumn } from 'typeorm';
 import Organization from './organization.entity';
-import * as bcrypt from 'bcrypt';
-import { UnauthorizedException } from '@nestjs/common';
 
 @Entity('user')
 export default class User {
   @PrimaryColumn({ name: 'user_id' })
-  user_id: string;
+  userId: string;
 
   @Column({ unique: true, nullable: false, name: 'email' })
   email: string;
 
-  @Column({ unique: true, nullable: false, name: 'name' })
+  @Column({ unique: false, nullable: false, name: 'name' })
   name: string;
 
   @Column({
-    nullable: true,
+    unique: true,
     default: null,
     name: 'current_hashed_refresh_token',
   })
   currentHashedRefreshToken?: string;
 
-  @OneToMany(() => Organization, (organization) => organization.user)
-  @JoinColumn({ name: 'user_organization' })
+  @Column({
+    default: false,
+    name: 'is_attended',
+  })
+  isAttended: boolean;
+
+  @OneToOne(() => Organization, (organization) => organization.user, {
+    cascade: ['insert', 'update', 'remove'],
+  })
   organization: Organization[];
-
-  @OneToMany(() => Post, (post) => post.user)
-  @JoinColumn({ name: 'user_post' })
-  post: Post[];
-
-  async checkRefreshToken(plainRefreshToken: string): Promise<boolean> {
-    try {
-      return await bcrypt.compare(
-        plainRefreshToken,
-        this.currentHashedRefreshToken,
-      );
-    } catch (e) {
-      throw new UnauthorizedException('invalid token');
-    }
-  }
 }
