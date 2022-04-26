@@ -1,28 +1,23 @@
-import {
-  EntityRepository,
-  getRepository,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { EntityRepository, Repository } from 'typeorm';
 import Post from '../entities/post.entity';
 import { PostDto } from './dto/post.dto';
 import { plainToClass } from 'class-transformer';
+import { NotFoundException } from '@nestjs/common';
 
 @EntityRepository(Post)
 export class PostRepository extends Repository<Post> {
-  async findAllPost(): Promise<PostDto[]> {
-    const row = await this.findPost().getRawMany();
-    return plainToClass(PostDto, row);
-  }
-
-  async findOnePostByIdx(idx: number): Promise<PostDto> {
-    const row = await this.findPost()
+  async findPostByIdx(idx: number): Promise<PostDto> {
+    const raw = await this.createQueryBuilder('p')
       .where('p.post_idx = :idx', { idx: idx })
-      .getRawOne();
-    return plainToClass(PostDto, row);
+      .getOneOrFail()
+      .catch((err) => {
+        throw new NotFoundException(err);
+      });
+    return plainToClass(PostDto, raw);
   }
 
-  private findPost(): SelectQueryBuilder<Post> {
-    return getRepository(Post).createQueryBuilder('p').select('*');
+  async findAllPost(): Promise<PostDto[]> {
+    const raw = await this.createQueryBuilder().getRawMany();
+    return plainToClass(PostDto, raw);
   }
 }
