@@ -1,21 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
 import BaseResponse from 'src/common/response/base.response';
-import User from '../../entities/user.entity';
 import { Exclude } from 'class-transformer';
+import { ShowUserDto } from '../../user/dto/show-user.dto';
 
 export default class LoginResponseData {
   @Exclude() private readonly username: string;
   @Exclude() private readonly accessToken: string;
   @Exclude() private readonly refreshToken: string;
 
-  constructor(user: User, accessToken: string, refreshToken: string) {
+  constructor(user: ShowUserDto, tokens: Map<string, string>) {
     this.username = user.name;
-    this.accessToken = 'Bearer ' + accessToken;
-    this.refreshToken = 'Bearer ' + refreshToken;
+    this.accessToken = tokens.get('accessToken');
+    this.refreshToken = tokens.get('refreshToken');
   }
 }
 
-export class LoginResponse extends BaseResponse<LoginResponseData> {
+export class LoginResponseDto extends BaseResponse<LoginResponseData> {
   @ApiProperty({
     type: () => LoginResponseData,
   })
