@@ -17,14 +17,9 @@ export class PostService {
   ) {}
 
   async findByPostIdx(postIdx: number): Promise<Post> {
-    return await this.postRepository.findOneOrFail(
-      {
-        idx: postIdx,
-      },
-      {
-        relations: ['team'],
-      },
-    );
+    return await this.postRepository.findOneOrFail({
+      idx: postIdx,
+    });
   }
 
   async findShowPostDtoByPostIdx(postIdx: number): Promise<ShowPostDto> {
