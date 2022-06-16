@@ -3,7 +3,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import Post from './post.entity';
@@ -23,19 +22,21 @@ export default class Team {
   })
   status: Status;
 
-  @OneToOne(() => User, (user) => user.team, {
+  @ManyToOne(() => User, (user) => user.team, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     orphanedRowAction: 'delete',
+    eager: true,
   })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  participants: User;
 
   @ManyToOne(() => Post, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     orphanedRowAction: 'delete',
+    lazy: true,
   })
   @JoinColumn({ name: 'post_idx' })
-  post: Post;
+  post: Promise<Post>;
 }

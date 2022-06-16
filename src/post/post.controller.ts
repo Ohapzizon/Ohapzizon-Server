@@ -5,118 +5,100 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Post,
-  UseGuards,
-  Put,
-  ParseIntPipe,
   Param,
+  ParseIntPipe,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserDecorator } from '../common/decorators/user.decorator';
-import User from '../entities/user.entity';
 import BaseResponse from '../common/response/base.response';
-import { FindAllPostResDto, FindOnePostResDto, PostDto } from './dto/post.dto';
+import { FindOnePostResponse } from './response/find-one-post.response';
+import { FindAllPostResponse } from './response/find-all-post.response';
+import { Auth } from '../common/decorators/auth.decorator';
+import { Role } from '../user/enum/role';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { ShowPostDto } from './dto/show-post.dto';
 
 @ApiTags('Post')
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @ApiBearerAuth('accessToken')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '모집글 게시' })
-  @ApiBadRequestResponse({ description: '올바르지 않은 정보입니다.' })
+  @Auth(Role.USER)
   @HttpCode(HttpStatus.CREATED)
   @Post('')
   async posting(
-    @Body() postDto: CreatePostDto,
-    @UserDecorator() user: User,
-  ): Promise<FindOnePostResDto> {
-    const data: PostDto = await this.postService.posting(postDto, user);
-    return new FindOnePostResDto(
-      HttpStatus.OK,
+    @UserDecorator('userId') userId: string,
+    @Body() createPostDto: CreatePostDto,
+  ): Promise<FindOnePostResponse> {
+    const data: ShowPostDto = await this.postService.posting(
+      userId,
+      createPostDto,
+    );
+    return new FindOnePostResponse(
+      HttpStatus.CREATED,
       '게시글 게시에 성공하였습니다.',
       data,
     );
   }
 
-  @ApiOperation({ summary: '모집글 전체 조회' })
-  @HttpCode(HttpStatus.OK)
-  @Get('')
-  async findAllPost(): Promise<FindAllPostResDto> {
-    const data: PostDto[] = await this.postService.findAllPost();
-    return new FindAllPostResDto(
-      200,
-      '게시글 전체조회에 성공하였습니다.',
-      data,
-    );
-  }
-
   @ApiOperation({ summary: '모집글 상세조회' })
-  @HttpCode(HttpStatus.OK)
-  @ApiParam({
-    name: 'idx',
-    required: true,
-    description: '불러올 게시글의 idx',
-  })
-  @Get(':idx')
+  @Get(':postIdx')
   async findOnePost(
-    @Param('idx', ParseIntPipe) idx: number,
-  ): Promise<FindOnePostResDto> {
-    const data: PostDto = await this.postService.findExistingPostByIdx(idx);
-    return new FindOnePostResDto(
-      200,
+    @Param('postIdx', ParseIntPipe) postIdx: number,
+  ): Promise<FindOnePostResponse> {
+    const data: ShowPostDto = await this.postService.findShowPostDtoByPostIdx(
+      postIdx,
+    );
+    return new FindOnePostResponse(
+      HttpStatus.OK,
       '게시글 상세조회에 성공하였습니다.',
       data,
     );
   }
 
-  @ApiBearerAuth('accessToken')
-  @UseGuards(JwtAuthGuard)
-  @ApiParam({
-    name: 'idx',
-    required: true,
-    description: '수정할 게시글',
-  })
-  @ApiOperation({ summary: '모집글 수정' })
-  @HttpCode(HttpStatus.OK)
-  @Put(':idx')
-  async update(
-    @Param('idx', ParseIntPipe) idx: number,
-    @Body() createPostDto: CreatePostDto,
-    @UserDecorator() user: User,
-  ): Promise<FindOnePostResDto> {
-    const data: PostDto = await this.postService.updatePost(
-      idx,
-      createPostDto,
-      user,
+  @ApiOperation({ summary: '모집글 전체 조회' })
+  @Get('')
+  async findAll(): Promise<FindAllPostResponse> {
+    const data: ShowPostDto[] = await this.postService.findAllShowPostDto();
+    return new FindAllPostResponse(
+      HttpStatus.OK,
+      '게시글 전체조회에 성공하였습니다.',
+      data,
     );
-    return new FindOnePostResDto(200, '모집글 수정에 성공하였습니다.', data);
   }
 
-  @ApiBearerAuth('accessToken')
-  @UseGuards(JwtAuthGuard)
-  @ApiParam({
-    name: 'idx',
-    required: true,
-    description: '삭제할 게시글',
-  })
-  @ApiOperation({ summary: '모집글 삭제' })
-  @Delete(':idx')
-  async delete(
-    @Param('idx', ParseIntPipe) idx: number,
-    @UserDecorator() user: User,
+  @ApiOperation({ summary: '모집글 수정' })
+  @HttpCode(HttpStatus.OK)
+  @Auth(Role.USER)
+  @Put(':postIdx')
+  async updatePost(
+    @Param('postIdx', ParseIntPipe) postIdx: number,
+    @UserDecorator('userId') userId: string,
+    @Body() updatePostDto: UpdatePostDto,
   ): Promise<BaseResponse<void>> {
-    await this.postService.deletePost(idx, user);
-    return new BaseResponse<void>(200, '모집글 삭제에 성공하였습니다.');
+    await this.postService.updatePost(postIdx, userId, updatePostDto);
+    return new BaseResponse<void>(
+      HttpStatus.OK,
+      '모집글 수정에 성공하였습니다.',
+    );
+  }
+
+  @ApiOperation({ summary: '모집글 삭제' })
+  @Auth(Role.USER)
+  @Delete(':postIdx')
+  async deletePost(
+    @Param('postIdx', ParseIntPipe) postIdx: number,
+    @UserDecorator('userId') userId: string,
+  ): Promise<BaseResponse<void>> {
+    await this.postService.deletePost(postIdx, userId);
+    return new BaseResponse<void>(
+      HttpStatus.OK,
+      '모집글 삭제에 성공하였습니다.',
+    );
   }
 }

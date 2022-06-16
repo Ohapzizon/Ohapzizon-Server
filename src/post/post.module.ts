@@ -3,20 +3,16 @@ import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostRepository } from './post.repository';
-import { OrganizationRepository } from '../organization/organization.repository';
-import { TokenModule } from '../token/token.module';
-import { GroupRepository } from '../group/group.repository';
+import { TeamRepository } from '../team/team.repository';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      PostRepository,
-      OrganizationRepository,
-      GroupRepository,
-    ]),
-    TokenModule,
+    TypeOrmModule.forFeature([PostRepository, TeamRepository]),
+    UserModule,
   ],
   controllers: [PostController],
   providers: [PostService],
+  exports: [PostService],
 })
 export class PostModule {}

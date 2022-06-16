@@ -2,17 +2,16 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { TeamRepository } from './team.repository';
 import { PostService } from '../post/post.service';
-import { ShowPostDto } from '../post/dto/show-post.dto';
 import Team from '../entities/team.entity';
-import { ShowTeamDto } from './dto/show-team.dto';
-import { ShowUserDto } from '../user/dto/show-user.dto';
 import { UserService } from '../user/user.service';
 import { Status } from './enum/status';
 import User from '../entities/user.entity';
+import Post from '../entities/post.entity';
+import { ShowTeamDto } from './dto/show-team.dto';
+import { ShowTeamDtoBuilder } from './builder/show-team-dto.builder';
 
 @Injectable()
 export class TeamService {
@@ -22,50 +21,70 @@ export class TeamService {
     private readonly userService: UserService,
   ) {}
 
-  async findByUserId(userId: string): Promise<ShowTeamDto> {
-    const user: ShowUserDto = await this.userService.findUserByUserId(userId);
-    const team = await this.teamRepository.findByUserId(user.userId);
-    if (!team) throw new NotFoundException();
-    return team;
+  async findByPostIdx(postIdx: number): Promise<Team[]> {
+    const post: Post = await this.postService.findByPostIdx(postIdx);
+    return this.teamRepository.find({ post: post });
   }
 
-  async findByPostIdx(postIdx: number): Promise<ShowTeamDto[]> {
-    const post: ShowPostDto = await this.postService.findShowPostDtoByPostIdx(postIdx);
-    return await this.teamRepository.findByPostIdx(post.idx);
+  async findShowTeamDtoByPostIdx(postIdx: number): Promise<ShowTeamDto[]> {
+    const post: Post = await this.postService.findByPostIdx(postIdx);
+    const team: Team[] = await this.teamRepository.find({ post: post });
+    return team.map((team) =>
+      new ShowTeamDtoBuilder()
+        .setIdx(team.idx)
+        .setStatus(team.status)
+        .setParticipants(team.participants.name)
+        .build(),
+    );
   }
 
-  async join(postIdx: number, userId: string): Promise<ShowTeamDto[]> {
-    const post: ShowPostDto = await this.postService.findShowPostDtoByPostIdx(postIdx);
-    const user: User = await this.userService.findUserByUserId(userId);
-    const team: ShowTeamDto[] = await this.findByPostIdx(post.idx);
-    if (post.maxCount == team.length)
+  async findByTeamIdx(teamIdx: number): Promise<Team> {
+    return await this.teamRepository.findOneOrFail({ idx: teamIdx });
+  }
+
+  async join(postIdx: number, currentUserId: string): Promise<ShowTeamDto[]> {
+    const post: Post = await this.postService.findByPostIdx(postIdx);
+    const existingTeam: Team[] = await this.findByPostIdx(post.idx);
+    if (post.maxCount <= existingTeam.length)
       throw new BadRequestException('이미 참가 모집이 마감된 글입니다.');
-    if (team.find((team) => team.participant == user.name))
+    const currentUser: User = await this.userService.findByUserId(
+      currentUserId,
+    );
+    if (
+      existingTeam.find(
+        (team) =>
+          JSON.stringify(team.participants) == JSON.stringify(currentUser),
+      )
+    )
       throw new BadRequestException('이미 참가한 사용자입니다.');
     const newTeam: Team = this.teamRepository.create({
-      user: user,
-      post: post,
+      participants: currentUser,
     });
+    newTeam.post = Promise.resolve(post); // promise 인스턴스 생성
     await this.teamRepository.save(newTeam);
-    return this.findByPostIdx(post.idx);
+    return this.findShowTeamDtoByPostIdx(post.idx);
   }
 
   async updateStatus(
-    currentUser: ShowUserDto,
-    userId: string,
+    currentUserId: string,
+    teamIdx: number,
     status: Status,
   ): Promise<void> {
-    const team: ShowTeamDto = await this.findByUserId(userId);
-    const post: ShowPostDto = await this.postService.findShowPostDtoByPostIdx(
-      team.post.idx,
+    const team: Team = await this.findByTeamIdx(teamIdx);
+    const post = await team.post;
+    const currentUser: User = await this.userService.findByUserId(
+      currentUserId,
     );
-    if (post.writer !== currentUser.name)
+    if (JSON.stringify(post.writer) != JSON.stringify(currentUser))
       throw new ForbiddenException('작성자가 아닙니다.');
-    await this.teamRepository.update({ idx: team.idx }, { status: status });
+    await this.teamRepository.update(
+      { participants: currentUser },
+      { status: status },
+    );
   }
 
-  async cancelJoin(postIdx: number, currentUser: ShowUserDto): Promise<void> {
-    const post: ShowPostDto = await this.postService.findShowPostDtoByPostIdx(postIdx);
-    await this.teamRepository.delete({ post: post, user: currentUser });
+  async cancelJoin(teamIdx: number): Promise<void> {
+    const team: Team = await this.findByTeamIdx(teamIdx);
+    await this.teamRepository.delete({ idx: team.idx });
   }
 }

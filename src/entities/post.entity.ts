@@ -1,5 +1,5 @@
 import {
-  BaseEntity,
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -7,49 +7,59 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+import Team from './team.entity';
 import User from './user.entity';
-import Organization from './organization.entity';
-import Board from './board.entity';
-import { DayOrNight } from '../post/types/day-or-night.enum';
+import { MealTime } from '../post/enum/meal-time';
 
 @Entity('post')
-export default class Post extends BaseEntity {
+export default class Post {
   @PrimaryGeneratedColumn({ name: 'post_idx' })
-  post_idx: number;
+  idx: number;
 
-  @Column({ name: 'post_title' })
+  @Column({ name: 'title' })
   title: string;
 
-  @Column({ name: 'post_contents' })
+  @Column({ name: 'contents' })
   contents: string;
-
-  @Column({
-    name: 'is_day_and_night',
-    type: 'enum',
-    enum: ['DAY', 'NIGHT', 'NONE'],
-    default: 'NONE',
-  })
-  isDayOrNight: DayOrNight;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
 
   @Column({ name: 'max_count' })
   maxCount: number;
 
-  @OneToMany(() => Organization, (organization) => organization.post)
-  @JoinColumn({ name: 'post_organization' })
-  organization: Organization[];
-
-  @ManyToOne(() => User, (user) => user.post)
-  @JoinColumn({ name: 'post_user' })
-  user: User;
-
-  @OneToMany(() => Board, (board) => board.post, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
+  @Column({
+    name: 'meal_time',
+    type: 'enum',
+    enum: MealTime,
   })
-  @JoinColumn({ name: 'post_board' })
-  board: Board[];
+  mealTime: MealTime;
+
+  @CreateDateColumn({ name: 'created_at', select: false })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', select: false })
+  updatedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.post, {
+    onDelete: 'CASCADE',
+    orphanedRowAction: 'delete',
+    eager: true,
+  })
+  @JoinColumn({ name: 'user_id' })
+  writer: User;
+
+  @OneToMany(() => Team, (team) => team.post, {
+    cascade: ['insert', 'update', 'remove'],
+  })
+  team: Team[];
+
+  @BeforeInsert()
+  private timeCheck(): void {
+    const currentDate: Date = new Date();
+    const currentHour = currentDate.getHours();
+    const currentMinute = currentDate.getMinutes();
+    if (0 <= currentHour && currentHour <= 13 && currentMinute <= 30)
+      this.mealTime = MealTime.LUNCH;
+    else this.mealTime = MealTime.DINNER;
+  }
 }

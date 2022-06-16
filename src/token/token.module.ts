@@ -1,22 +1,11 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserRepository } from '../user/user.repository';
+import { Logger, Module } from '@nestjs/common';
 import { TokenService } from './token.service';
-import { JwtModule } from '@nestjs/jwt';
 import { TokenController } from './token.controller';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserRepository]),
-    JwtModule.register({
-      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-      signOptions: {
-        algorithm: 'HS256',
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME + 'm',
-      },
-    }),
-  ],
-  providers: [TokenService],
+  imports: [UserModule],
+  providers: [TokenService, Logger],
   controllers: [TokenController],
   exports: [TokenService],
 })

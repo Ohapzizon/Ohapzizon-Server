@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export default class BaseResponse<T> {
   @ApiProperty()
-  status: number;
+  private status: number;
 
   @ApiProperty()
-  message: string;
+  private message: string;
 
   data?: T;
 

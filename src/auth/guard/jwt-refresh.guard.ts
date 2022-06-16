@@ -1,16 +1,13 @@
 import {
   BadRequestException,
+  CanActivate,
   ExecutionContext,
   Injectable,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { TokenService } from '../../token/token.service';
+import { validateToken } from '../../token/lib/token';
 
 @Injectable()
-export class JwtRefreshGuard extends AuthGuard('jwt-refresh-token') {
-  constructor(private readonly tokenService: TokenService) {
-    super();
-  }
+export class JwtRefreshGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const { refresh, authorization } = request.headers;
@@ -20,11 +17,7 @@ export class JwtRefreshGuard extends AuthGuard('jwt-refresh-token') {
       throw new BadRequestException('RefreshToken 헤더가 비어있습니다.');
     const accessToken = authorization.split(' ')[1];
     const refreshToken = refresh.split(' ')[1];
-    request.user = this.tokenService.validateToken(
-      accessToken,
-      refreshToken,
-      true,
-    );
+    request.user = validateToken(accessToken, refreshToken, true);
     return true;
   }
 }

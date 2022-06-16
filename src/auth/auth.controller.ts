@@ -7,23 +7,16 @@ import {
   HttpStatus,
   Post,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { UserDecorator } from '../common/decorators/user.decorator';
-import { JwtAuthGuard } from './guard/jwt-auth.guard';
-import User from '../entities/user.entity';
 import { AuthService } from './auth.service';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GoogleCodeDto } from './dto/google-code.dto';
 import BaseResponse from '../common/response/base.response';
-import LoginResponseData, { LoginResponse } from './response/login.response';
+import { LoginResponse } from './response/login.response';
+import { Auth } from '../common/decorators/auth.decorator';
+import { Role } from '../user/enum/role';
+import { LoginDto } from './dto/login.dto';
 
 @ApiTags('Authentication')
 @Controller('auth/google')
@@ -37,27 +30,27 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: '구글 로그인' })
-  @ApiBody({ type: GoogleCodeDto })
-  @ApiOkResponse({ description: '로그인 성공(토큰 발급)' })
-  @ApiUnauthorizedResponse({ description: '구글 인증에 실패했습니다.' })
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   @Post('')
   async logIn(@Body() googleCodeDto: GoogleCodeDto): Promise<LoginResponse> {
-    const data: LoginResponseData = await this.authService.logIn(googleCodeDto);
+    const data: LoginDto = await this.authService.logIn(googleCodeDto);
     return new LoginResponse(
-      HttpStatus.OK,
+      HttpStatus.CREATED,
       '구글 로그인을 성공하였습니다.',
       data,
     );
   }
 
   @ApiOperation({ summary: '로그아웃' })
-  @ApiOkResponse({ description: '로그아웃 성공(Refresh 토큰 삭제)' })
-  @ApiBearerAuth('accessToken')
-  @UseGuards(JwtAuthGuard)
+  @Auth(Role.USER)
   @Delete('')
-  async logout(@UserDecorator() user: User): Promise<BaseResponse<void>> {
-    await this.authService.logOut(user.userId);
-    return new BaseResponse<void>(HttpStatus.OK, '로그아웃을 성공하였습니다.');
+  async logout(
+    @UserDecorator('userId') currentUserId: string,
+  ): Promise<BaseResponse<void>> {
+    await this.authService.logOut(currentUserId);
+    return new BaseResponse<void>(
+      HttpStatus.NO_CONTENT,
+      '로그아웃을 성공하였습니다.',
+    );
   }
 }

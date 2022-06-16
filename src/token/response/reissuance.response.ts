@@ -1,17 +1,10 @@
 import BaseResponse from '../../common/response/base.response';
 import { ApiProperty } from '@nestjs/swagger';
+import { ReissuanceDto } from '../dto/reissuance.dto';
 
-export default class ReissuanceResponseData {
-  token: string;
-
-  constructor(token: string) {
-    this.token = 'Bearer ' + token;
-  }
-}
-
-export class ReissuanceResponse extends BaseResponse<ReissuanceResponseData> {
+export class ReissuanceResponse extends BaseResponse<ReissuanceDto> {
   @ApiProperty({
-    type: () => ReissuanceResponseData,
+    type: () => ReissuanceDto,
   })
-  data: ReissuanceResponseData;
+  data!: ReissuanceDto;
 }

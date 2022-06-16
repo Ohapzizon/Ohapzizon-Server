@@ -1,5 +1,5 @@
 import User from './user.entity';
 import Post from './post.entity';
-import Organization from './organization.entity';
+import Team from './team.entity';
 
-export default [User, Post, Organization];
+export default [User, Post, Team];

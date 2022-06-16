@@ -1,114 +1,73 @@
-import {
-  GoneException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { UserRepository } from '../user/user.repository';
-import { IJwtPayload } from '../common/interfaces/jwt-payload.interface';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
+import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import User from '../entities/user.entity';
+import { ReissuanceDto } from './dto/reissuance.dto';
 
 @Injectable()
 export class TokenService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly jwtService: JwtService,
+    readonly configService: ConfigService,
+    private readonly userService: UserService,
   ) {}
 
-  async validateToken(
-    accessToken: string,
-    refreshToken?: string,
-    isRefresh = false,
-  ): Promise<User> {
-    let user: User = null;
-    try {
-      user = await this.verify(accessToken, refreshToken, isRefresh);
-      if (isRefresh) await user.checkRefreshToken(refreshToken);
-      return user;
-    } catch (e) {
-      switch (e.message) {
-        // 토큰에 대한 오류를 판단합니다.
-        case 'invalid signature': // signature의 구문을 분석할 수 없을 경우
-        case 'invalid token': // 헤더 또는 페이로드의 구문을 분석할 수 없을 경우, 또는 유효하지 못한 토큰
-        case 'jwt malformed': // 토큰에 구조적으로 문제가 생겼을 경우
-        case 'jwt signature is required': // 토큰에 signature을 확인하지 못 했을 경우
-        case 'Unexpected token': // 토큰의 형식이 원하는 형식과 맞지 않는 경우
-        case 'jwt must be provided': // 클레임에 null 값이 들어갔을 경우
-          throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+  private TOKEN_SECRET = this.configService.get<string>('TOKEN_SECRET');
+  private ACCESS_TOKEN_EXPIRED = this.configService.get<string>(
+    'ACCESS_TOKEN_EXPIRATION_TIME',
+  );
+  private REFRESH_TOKEN_EXPIRED = this.configService.get<string>(
+    'REFRESH_TOKEN_EXPIRATION_TIME',
+  );
 
-        case 'jwt expired': // 토큰이 만료되었을 경우
-          if (isRefresh) {
-            user = await this.decode(accessToken);
-            await user.checkRefreshToken(refreshToken);
-            return user;
-          }
-          throw new GoneException('만료된 토큰입니다.');
-
-        default:
-          Logger.error(e);
-          throw new InternalServerErrorException('서버 오류입니다.');
-      }
-    }
+  async createTokens(user: User): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    const accessToken = this.createAccessToken(user);
+    const refreshToken = await this.createRefreshToken(user.userId);
+    map.set('accessToken', 'Bearer ' + accessToken);
+    map.set('refreshToken', 'Bearer ' + refreshToken);
+    return map;
   }
 
-  async verify(token: string, refreshToken?: string, isRefresh = false) {
-    const secretKey: string = process.env.JWT_ACCESS_TOKEN_SECRET;
-    const verify: IJwtPayload = jwt.verify(token, secretKey) as IJwtPayload;
-    if (isRefresh) jwt.verify(refreshToken, secretKey);
-    return await this.userRepository.findUser({ where: { email: verify.sub } });
+  async reissuanceToken(userId: string): Promise<ReissuanceDto> {
+    const user: User = await this.userService.findByUserId(userId);
+    const token = this.createAccessToken(user);
+    return new ReissuanceDto(token);
   }
 
-  async decode(token: string): Promise<User> {
-    const decode: IJwtPayload = jwt.decode(token) as IJwtPayload;
-    return await this.userRepository.findUser({
-      where: { email: decode.sub },
-    });
+  removeRefreshToken(userId: string): Promise<void> {
+    return this.userService.updateRefreshTokenById(userId, null);
   }
 
-  createAccessToken(email: string, name: string): string {
-    const payload: IJwtPayload = {
-      sub: email,
-      aud: name,
-    };
-    return this.jwtService.sign(payload, {
-      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME + 'm',
+  private createAccessToken(user: User): string {
+    const { userId, name, role } = user;
+    const payload = { userId, name, role };
+    return jwt.sign(payload, this.TOKEN_SECRET, {
+      expiresIn: this.ACCESS_TOKEN_EXPIRED + 'm',
       algorithm: 'HS256',
     });
   }
 
-  async createRefreshToken(name: string): Promise<string> {
-    const payload = {} as IJwtPayload;
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME + 'm',
+  private async createRefreshToken(userId: string): Promise<string> {
+    const payload = {};
+    const refreshToken = jwt.sign(payload, this.TOKEN_SECRET, {
+      expiresIn: this.REFRESH_TOKEN_EXPIRED + 'm',
       algorithm: 'HS256',
     });
-    await this.setHashedRefreshToken(refreshToken, name);
+    await this.setHashedRefreshToken(refreshToken, userId);
     return refreshToken;
   }
 
-  async setHashedRefreshToken(
+  private async setHashedRefreshToken(
     refreshToken: string,
-    name: string,
+    userId: string,
   ): Promise<void> {
-    const currentHashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.userRepository.update(
-      { name: name },
-      { currentHashedRefreshToken: currentHashedRefreshToken },
-    );
-  }
-
-  removeRefreshToken(id: string) {
-    return this.userRepository.update(
-      { user_id: id },
-      {
-        currentHashedRefreshToken: null,
-      },
+    const salt = await bcrypt.genSalt();
+    const currentHashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+    return this.userService.updateRefreshTokenById(
+      userId,
+      currentHashedRefreshToken,
     );
   }
 }

@@ -4,7 +4,7 @@ import axios, { AxiosResponse } from 'axios';
 import { IGoogleUser } from './types/google-user.types';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from '../token/token.service';
-import LoginResponseDto from './response/login.response';
+import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { UserService } from '../user/user.service';
 import User from '../entities/user.entity';
@@ -15,34 +15,45 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly configService: ConfigService,
+    private readonly logger: Logger,
   ) {}
 
-  private clientID: string = this.configService.get<string>('CLIENT_ID');
-  private clientSecret: string =
+  private readonly clientID: string =
+    this.configService.get<string>('CLIENT_ID');
+  private readonly clientSecret: string =
     this.configService.get<string>('CLIENT_SECRET');
-  private callbackURL: string = this.configService.get<string>('CALLBACK_URL');
+  private readonly callbackURL: string =
+    this.configService.get<string>('CALLBACK_URL');
 
-  async logIn(googleCodeDto: GoogleCodeDto): Promise<LoginResponseDto> {
-    const { id, email, name } = await this.getGoogleUserInfo(googleCodeDto);
-    const user: User = await this.userService.register(id, email, name);
-    const accessToken = this.tokenService.createAccessToken(id, email, name);
-    const refreshToken = await this.tokenService.createRefreshToken(id);
-    return new LoginResponseDto(user, accessToken, refreshToken);
+  async logIn(googleCodeDto: GoogleCodeDto): Promise<LoginDto> {
+    const data: IGoogleUser = await this.getGoogleUserInfo(googleCodeDto);
+    const user: User = await this.userService.register({
+      userId: data.id,
+      email: data.email,
+      name: data.name,
+    });
+    const tokens: Map<string, string> = await this.tokenService.createTokens(
+      user,
+    );
+    return new LoginDto(user.name, tokens);
   }
 
-  logOut(userId: string): Promise<void> {
-    return this.tokenService.removeRefreshToken(userId);
+  logOut(currentUserId: string): Promise<void> {
+    return this.tokenService.removeRefreshToken(currentUserId);
   }
 
   getOAuthRedirectURL(res: Response): void {
     const hostName = 'https://accounts.google.com';
+    const responseType = 'code';
     const scope = 'email profile';
     res.redirect(
-      `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${this.callbackURL}&scope=${scope}&client_id=${this.clientID}`,
+      `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=${responseType}&redirect_uri=${this.callbackURL}&scope=${scope}&client_id=${this.clientID}`,
     );
   }
 
-  async getGoogleUserInfo(googleCodeDto: GoogleCodeDto): Promise<IGoogleUser> {
+  private async getGoogleUserInfo(
+    googleCodeDto: GoogleCodeDto,
+  ): Promise<IGoogleUser> {
     const { code } = googleCodeDto;
     const getTokenUrl = `https://oauth2.googleapis.com/token?code=${code}&client_id=${this.clientID}&client_secret=${this.clientSecret}&redirect_uri=${this.callbackURL}&grant_type=authorization_code`;
     try {
@@ -58,7 +69,7 @@ export class AuthService {
       );
       return data;
     } catch (e) {
-      Logger.error(e);
+      this.logger.error(e);
       throw new UnauthorizedException('구글 인증에 실패했습니다.');
     }
   }
