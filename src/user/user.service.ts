@@ -14,14 +14,13 @@ export class UserService {
   }
 
   async register(createUserDto: CreateUserDto): Promise<User> {
-    const { userId, name, email } = createUserDto;
     const newUser: User = this.userRepository.create({
-      userId: userId,
-      email: email,
-      name: name,
+      userId: createUserDto.userId,
+      email: createUserDto.email,
+      name: createUserDto.name,
     });
-    await this.userRepository.save(newUser);
-    return this.findByUserId(userId);
+    const savedUser = await this.userRepository.save(newUser);
+    return this.findByUserId(savedUser.userId);
   }
 
   async updateRefreshTokenById(
