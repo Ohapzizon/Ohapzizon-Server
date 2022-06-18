@@ -2,11 +2,9 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   HttpCode,
   HttpStatus,
   Post,
-  Res,
 } from '@nestjs/common';
 import { UserDecorator } from '../common/decorators/user.decorator';
 import { AuthService } from './auth.service';
@@ -22,12 +20,6 @@ import { LoginDto } from './dto/login.dto';
 @Controller('auth/google')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @ApiOperation({ summary: '구글 인증 페이지 리다이렉션' })
-  @Get('')
-  getOAuthRedirectURL(@Res() res): void {
-    return this.authService.getOAuthRedirectURL(res);
-  }
 
   @ApiOperation({ summary: '구글 로그인' })
   @HttpCode(HttpStatus.CREATED)

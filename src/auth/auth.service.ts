@@ -42,15 +42,6 @@ export class AuthService {
     return this.tokenService.removeRefreshToken(currentUserId);
   }
 
-  getOAuthRedirectURL(res: Response): void {
-    const hostName = 'https://accounts.google.com';
-    const responseType = 'code';
-    const scope = 'email profile';
-    res.redirect(
-      `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=${responseType}&redirect_uri=${this.callbackURL}&scope=${scope}&client_id=${this.clientID}`,
-    );
-  }
-
   private async getGoogleUserInfo(
     googleCodeDto: GoogleCodeDto,
   ): Promise<IGoogleUser> {
