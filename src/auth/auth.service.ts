@@ -5,7 +5,6 @@ import { IGoogleUser } from './types/google-user.types';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from '../token/token.service';
 import { LoginDto } from './dto/login.dto';
-import { Response } from 'express';
 import { UserService } from '../user/user.service';
 import User from '../entities/user.entity';
 
