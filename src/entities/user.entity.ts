@@ -14,6 +14,9 @@ export default class User {
   @Column({ name: 'email', unique: true, nullable: false })
   email: string;
 
+  @Column({ name: 'stdNum', unique: true, nullable: false })
+  stdNum: string;
+
   @Column({ name: 'name', unique: false, nullable: false })
   name: string;
 
