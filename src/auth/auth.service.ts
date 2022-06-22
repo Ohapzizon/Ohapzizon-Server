@@ -27,7 +27,7 @@ export class AuthService {
   async logIn(googleCodeDto: GoogleCodeDto): Promise<LoginDto> {
     const data: IGoogleUser = await this.getGoogleUserInfo(googleCodeDto);
     const user: User = await this.userService.register({
-      userId: data.id,
+      googleId: data.id,
       email: data.email,
       name: data.name,
     });
@@ -37,8 +37,8 @@ export class AuthService {
     return new LoginDto(user.name, tokens);
   }
 
-  logOut(currentUserId: string): Promise<void> {
-    return this.tokenService.removeRefreshToken(currentUserId);
+  logOut(userId: number): Promise<void> {
+    return this.tokenService.removeRefreshToken(userId);
   }
 
   private async getGoogleUserInfo(

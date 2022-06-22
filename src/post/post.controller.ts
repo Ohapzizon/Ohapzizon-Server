@@ -32,7 +32,7 @@ export class PostController {
   @HttpCode(HttpStatus.CREATED)
   @Post('')
   async posting(
-    @UserDecorator('userId') userId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
     @Body() createPostDto: CreatePostDto,
   ): Promise<FindOnePostResponse> {
     const data: ShowPostDto = await this.postService.posting(
@@ -78,7 +78,7 @@ export class PostController {
   @Put(':postIdx')
   async updatePost(
     @Param('postIdx', ParseIntPipe) postIdx: number,
-    @UserDecorator('userId') userId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<BaseResponse<void>> {
     await this.postService.updatePost(postIdx, userId, updatePostDto);
@@ -93,7 +93,7 @@ export class PostController {
   @Delete(':postIdx')
   async deletePost(
     @Param('postIdx', ParseIntPipe) postIdx: number,
-    @UserDecorator('userId') userId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
   ): Promise<BaseResponse<void>> {
     await this.postService.deletePost(postIdx, userId);
     return new BaseResponse<void>(

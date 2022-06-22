@@ -1,4 +1,10 @@
-import { Controller, Get, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { TokenService } from './token.service';
 import { JwtRefreshGuard } from '../auth/guard/jwt-refresh.guard';
 import { UserDecorator } from '../common/decorators/user.decorator';
@@ -26,7 +32,7 @@ export class TokenController {
   @ApiBearerAuth('accessToken')
   @Get('refresh')
   async refresh(
-    @UserDecorator('userId') userId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
   ): Promise<ReissuanceResponse> {
     const token: ReissuanceDto = await this.tokenService.reissuanceToken(
       userId,

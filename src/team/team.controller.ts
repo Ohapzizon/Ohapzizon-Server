@@ -45,7 +45,7 @@ export class TeamController {
   @Post(':postIdx')
   async join(
     @Param('postIdx', ParseIntPipe) postIdx: number,
-    @UserDecorator('userId') userId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
   ): Promise<FindTeamResponse> {
     const data: ShowTeamDto[] = await this.teamService.join(postIdx, userId);
     return new FindTeamResponse(HttpStatus.CREATED, '땡겨~', data);
@@ -55,10 +55,10 @@ export class TeamController {
   @Auth(Role.USER)
   @Patch(':teamIdx/accept')
   async acceptJoin(
-    @UserDecorator('userId') currentUserId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
     @Param('teamIdx') teamIdx: number,
   ): Promise<BaseResponse<void>> {
-    await this.teamService.updateStatus(currentUserId, teamIdx, Status.ACCEPT);
+    await this.teamService.updateStatus(userId, teamIdx, Status.ACCEPT);
     return new BaseResponse<void>(HttpStatus.OK, '수락에 성공하였습니다.');
   }
 
@@ -66,10 +66,10 @@ export class TeamController {
   @Auth(Role.USER)
   @Patch(':teamIdx/reject')
   async rejectJoin(
-    @UserDecorator('userId') currentUserId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
     @Param('postIdx') teamIdx: number,
   ): Promise<BaseResponse<void>> {
-    await this.teamService.updateStatus(currentUserId, teamIdx, Status.REJECT);
+    await this.teamService.updateStatus(userId, teamIdx, Status.REJECT);
     return new BaseResponse<void>(HttpStatus.OK, '거절에 성공하였습니다.');
   }
 

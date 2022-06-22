@@ -3,15 +3,15 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
   @ApiProperty({
-    name: 'maxCount',
+    name: 'googleId',
     default: '13',
   })
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  googleId: string;
 
   @ApiProperty({
-    name: 'title',
+    name: 'email',
     default: '점축 땡길사람',
   })
   @IsString()
@@ -19,7 +19,7 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty({
-    name: 'contents',
+    name: 'name',
     default: '날씨가 이렇게 좋은데 안땡기면 이건 ㄹㅇ 범죄다.',
   })
   @IsString()
