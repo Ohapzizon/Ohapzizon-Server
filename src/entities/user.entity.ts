@@ -5,8 +5,8 @@ import { Role } from '../user/enum/role';
 
 @Entity('user')
 export default class User {
-  @PrimaryGeneratedColumn({ name: 'user_idx' })
-  idx: number;
+  @PrimaryGeneratedColumn({ name: 'user_id' })
+  userId: number;
 
   @Column({ name: 'google_id', unique: true, nullable: false })
   googleId: string;
