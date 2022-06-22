@@ -42,7 +42,7 @@ export class TeamService {
     return await this.teamRepository.findOneOrFail({ idx: teamIdx });
   }
 
-  async join(postIdx: number, currentUserId: string): Promise<ShowTeamDto[]> {
+  async join(postIdx: number, currentUserId: number): Promise<ShowTeamDto[]> {
     const post: Post = await this.postService.findByPostIdx(postIdx);
     const existingTeam: Team[] = await this.findByPostIdx(post.idx);
     if (post.maxCount <= existingTeam.length)
@@ -66,7 +66,7 @@ export class TeamService {
   }
 
   async updateStatus(
-    currentUserId: string,
+    currentUserId: number,
     teamIdx: number,
     status: Status,
   ): Promise<void> {

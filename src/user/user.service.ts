@@ -7,15 +7,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async findByUserId(currentUserId: string): Promise<User | undefined> {
+  async findByUserId(userId: number): Promise<User | undefined> {
     return await this.userRepository.findOneOrFail({
-      userId: currentUserId,
+      userId: userId,
     });
   }
 
   async register(createUserDto: CreateUserDto): Promise<User> {
     const newUser: User = this.userRepository.create({
-      userId: createUserDto.userId,
+      googleId: createUserDto.googleId,
       email: createUserDto.email,
       name: createUserDto.name,
     });
@@ -24,18 +24,18 @@ export class UserService {
   }
 
   async updateRefreshTokenById(
-    currentUserId: string,
+    userId: number,
     currentHashedRefreshToken: string | null,
   ): Promise<void> {
     await this.userRepository.update(
-      { userId: currentUserId },
+      { userId: userId },
       {
         currentHashedRefreshToken: currentHashedRefreshToken,
       },
     );
   }
 
-  async withdrawal(currentUserId: string): Promise<void> {
-    await this.userRepository.delete({ userId: currentUserId });
+  async withdrawal(userId: number): Promise<void> {
+    await this.userRepository.delete({ userId: userId });
   }
 }

@@ -2,8 +2,8 @@ import {
   Body,
   Controller,
   Delete,
-  HttpCode,
   HttpStatus,
+  ParseIntPipe,
   Post,
 } from '@nestjs/common';
 import { UserDecorator } from '../common/decorators/user.decorator';
@@ -22,7 +22,6 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: '구글 로그인' })
-  @HttpCode(HttpStatus.CREATED)
   @Post('')
   async logIn(@Body() googleCodeDto: GoogleCodeDto): Promise<LoginResponse> {
     const data: LoginDto = await this.authService.logIn(googleCodeDto);
@@ -37,9 +36,9 @@ export class AuthController {
   @Auth(Role.USER)
   @Delete('')
   async logout(
-    @UserDecorator('userId') currentUserId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
   ): Promise<BaseResponse<void>> {
-    await this.authService.logOut(currentUserId);
+    await this.authService.logOut(userId);
     return new BaseResponse<void>(
       HttpStatus.NO_CONTENT,
       '로그아웃을 성공하였습니다.',

@@ -49,12 +49,10 @@ export class PostService {
   }
 
   async posting(
-    currentUserId: string,
+    userId: number,
     createPostDto: CreatePostDto,
   ): Promise<ShowPostDto> {
-    const currentUser: User = await this.userService.findByUserId(
-      currentUserId,
-    );
+    const currentUser: User = await this.userService.findByUserId(userId);
     const post: Post = this.postRepository.create({
       title: createPostDto.title,
       contents: createPostDto.contents,
@@ -67,13 +65,11 @@ export class PostService {
 
   async updatePost(
     postIdx: number,
-    currentUserId: string,
+    userId: number,
     updatePostDto: UpdatePostDto,
   ): Promise<void> {
     const post: Post = await this.findByPostIdx(postIdx);
-    const currentUser: User = await this.userService.findByUserId(
-      currentUserId,
-    );
+    const currentUser: User = await this.userService.findByUserId(userId);
     if (JSON.stringify(post.writer) !== JSON.stringify(currentUser)) {
       if (currentUser.role == Role.ADMIN) return;
       throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
@@ -81,11 +77,9 @@ export class PostService {
     await this.postRepository.update({ idx: post.idx }, updatePostDto);
   }
 
-  async deletePost(postIdx: number, currentUserId: string): Promise<void> {
+  async deletePost(postIdx: number, userId: number): Promise<void> {
     const post: Post = await this.findByPostIdx(postIdx);
-    const currentUser: User = await this.userService.findByUserId(
-      currentUserId,
-    );
+    const currentUser: User = await this.userService.findByUserId(userId);
     if (JSON.stringify(post.writer) !== JSON.stringify(currentUser)) {
       if (currentUser.role == Role.ADMIN) return;
       throw new ForbiddenException('게시글을 삭제할 권한이 없습니다.');
