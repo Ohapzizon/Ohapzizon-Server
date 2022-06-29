@@ -24,17 +24,29 @@ export class AuthService {
   private readonly callbackURL: string =
     this.configService.get<string>('CALLBACK_URL');
 
-  async logIn(googleCodeDto: GoogleCodeDto): Promise<LoginDto> {
-    const data: IGoogleUser = await this.getGoogleUserInfo(googleCodeDto);
-    const user: User = await this.userService.register({
-      googleId: data.id,
-      email: data.email,
-      name: data.name,
-    });
-    const tokens: Map<string, string> = await this.tokenService.createTokens(
-      user,
+  getGoogleRedirectURL() {
+    const hostName = 'https://accounts.google.com';
+    const responseType = 'code';
+    const scope = 'email profile';
+    return {
+      url: `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=${responseType}&redirect_uri=${this.callbackURL}&scope=${scope}&client_id=${this.clientID}`,
+      statusCode: 302,
+    };
+  }
+
+  async googleLogIn(googleCodeDto: GoogleCodeDto): Promise<LoginDto> {
+    const googleUserInfo: IGoogleUser = await this.getGoogleUserInfo(
+      googleCodeDto,
     );
-    return new LoginDto(user.name, tokens);
+    const registeredUser: User = await this.userService.register({
+      googleId: googleUserInfo.id,
+      email: googleUserInfo.email,
+      name: googleUserInfo.name,
+    });
+    const map: Map<string, string> = await this.tokenService.createTokens(
+      registeredUser,
+    );
+    return new LoginDto(map);
   }
 
   logOut(userId: number): Promise<void> {
