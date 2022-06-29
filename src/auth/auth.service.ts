@@ -1,12 +1,12 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { GoogleCodeDto } from './dto/google-code.dto';
 import axios, { AxiosResponse } from 'axios';
-import { IGoogleUser } from './types/google-user.types';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from '../token/token.service';
 import { LoginDto } from './dto/login.dto';
 import { UserService } from '../user/user.service';
 import User from '../entities/user.entity';
+import { GoogleUserInfo } from './types/google-user.types';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +35,7 @@ export class AuthService {
   }
 
   async googleLogIn(googleCodeDto: GoogleCodeDto): Promise<LoginDto> {
-    const googleUserInfo: IGoogleUser = await this.getGoogleUserInfo(
+    const googleUserInfo: GoogleUserInfo = await this.getGoogleUserInfo(
       googleCodeDto,
     );
     const registeredUser: User = await this.userService.register({
@@ -55,7 +55,7 @@ export class AuthService {
 
   private async getGoogleUserInfo(
     googleCodeDto: GoogleCodeDto,
-  ): Promise<IGoogleUser> {
+  ): Promise<GoogleUserInfo> {
     const { code } = googleCodeDto;
     const getTokenUrl = `https://oauth2.googleapis.com/token?code=${code}&client_id=${this.clientID}&client_secret=${this.clientSecret}&redirect_uri=${this.callbackURL}&grant_type=authorization_code`;
     try {
