@@ -42,12 +42,12 @@ export class TeamService {
     return await this.teamRepository.findOneOrFail({ idx: teamIdx });
   }
 
-  async join(postIdx: number, currentUserId: string): Promise<ShowTeamDto[]> {
+  async join(postIdx: number, currentUserId: number): Promise<ShowTeamDto[]> {
     const post: Post = await this.postService.findByPostIdx(postIdx);
     const existingTeam: Team[] = await this.findByPostIdx(post.idx);
     if (post.maxCount <= existingTeam.length)
       throw new BadRequestException('이미 참가 모집이 마감된 글입니다.');
-    const currentUser: User = await this.userService.findByUserId(
+    const currentUser: User = await this.userService.findOrFailByUserId(
       currentUserId,
     );
     if (
@@ -66,13 +66,13 @@ export class TeamService {
   }
 
   async updateStatus(
-    currentUserId: string,
+    currentUserId: number,
     teamIdx: number,
     status: Status,
   ): Promise<void> {
     const team: Team = await this.findByTeamIdx(teamIdx);
     const post = await team.post;
-    const currentUser: User = await this.userService.findByUserId(
+    const currentUser: User = await this.userService.findOrFailByUserId(
       currentUserId,
     );
     if (JSON.stringify(post.writer) != JSON.stringify(currentUser))

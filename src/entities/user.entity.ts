@@ -1,19 +1,15 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import Team from './team.entity';
 import Post from './post.entity';
 import { Role } from '../user/enum/role';
 
 @Entity('user')
 export default class User {
-  @PrimaryColumn({ name: 'user_id' })
-  userId: string;
+  @PrimaryGeneratedColumn({ name: 'user_id' })
+  userId: number;
+
+  @Column({ name: 'google_id', unique: true, nullable: false })
+  googleId: string;
 
   @Column({ name: 'email', unique: true, nullable: false })
   email: string;
@@ -30,18 +26,12 @@ export default class User {
   role: Role;
 
   @Column({
-    unique: true,
-    default: null,
     name: 'current_hashed_refresh_token',
+    nullable: true,
+    default: null,
     select: false,
   })
   currentHashedRefreshToken?: string;
-
-  @CreateDateColumn({ select: false })
-  createdAt: Date;
-
-  @UpdateDateColumn({ select: false })
-  updatedAt: Date;
 
   @OneToMany(() => Post, (post) => post.writer, {
     cascade: ['insert', 'update', 'remove'],

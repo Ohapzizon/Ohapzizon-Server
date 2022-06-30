@@ -1,13 +1,32 @@
 import { Exclude, Expose } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
-  @Expose() private readonly username: string;
-  @Expose() private readonly accessToken: string;
-  @Exclude() private readonly refreshToken: string;
+  @Expose() private readonly _username: string;
+  @Expose() private readonly _accessToken: string;
+  @Exclude() private readonly _refreshToken: string;
 
-  constructor(username: string, tokens: Map<string, string>) {
-    this.username = username;
-    this.accessToken = tokens.get('accessToken');
-    this.refreshToken = tokens.get('refreshToken');
+  constructor(map: Map<string, string>) {
+    this._username = map.get('username');
+    this._accessToken = map.get('accessToken');
+    this._refreshToken = map.get('refreshToken');
+  }
+
+  @ApiProperty()
+  @Expose()
+  get username(): string {
+    return this._username;
+  }
+
+  @ApiProperty()
+  @Expose()
+  get accessToken(): string {
+    return this._accessToken;
+  }
+
+  @ApiProperty()
+  @Expose()
+  get refreshToken(): string {
+    return this._refreshToken;
   }
 }

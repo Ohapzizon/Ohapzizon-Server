@@ -1,4 +1,4 @@
-import { Controller, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Delete, HttpStatus, ParseIntPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserDecorator } from '../common/decorators/user.decorator';
@@ -15,7 +15,7 @@ export class UserController {
   @Auth(Role.USER)
   @Delete('')
   async withdrawal(
-    @UserDecorator('userId') userId: string,
+    @UserDecorator('userId', ParseIntPipe) userId: number,
   ): Promise<BaseResponse<void>> {
     await this.userService.withdrawal(userId);
     return new BaseResponse<void>(
