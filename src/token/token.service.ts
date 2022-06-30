@@ -29,6 +29,7 @@ export class TokenService {
       user.role,
     );
     const refreshToken: string = await this.createRefreshToken(user.userId);
+    map.set('username', user.name);
     map.set('accessToken', 'Bearer ' + accessToken);
     map.set('refreshToken', 'Bearer ' + refreshToken);
     return map;
