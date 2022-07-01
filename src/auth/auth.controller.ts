@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpStatus,
   ParseIntPipe,
   Post,
+  Redirect,
 } from '@nestjs/common';
 import { UserDecorator } from '../common/decorators/user.decorator';
 import { AuthService } from './auth.service';
@@ -17,14 +19,23 @@ import { Role } from '../user/enum/role';
 import { LoginDto } from './dto/login.dto';
 
 @ApiTags('Authentication')
-@Controller('auth/google')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: '구글 인증 페이지 리다이렉션' })
+  @Get('google')
+  @Redirect()
+  getGoogleRedirectURL() {
+    return this.authService.getGoogleRedirectURL();
+  }
+
   @ApiOperation({ summary: '구글 로그인' })
-  @Post('')
-  async logIn(@Body() googleCodeDto: GoogleCodeDto): Promise<LoginResponse> {
-    const data: LoginDto = await this.authService.logIn(googleCodeDto);
+  @Post('google')
+  async googleLogin(
+    @Body() googleCodeDto: GoogleCodeDto,
+  ): Promise<LoginResponse> {
+    const data: LoginDto = await this.authService.googleLogIn(googleCodeDto);
     return new LoginResponse(
       HttpStatus.CREATED,
       '구글 로그인을 성공하였습니다.',
