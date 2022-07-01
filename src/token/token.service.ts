@@ -36,7 +36,7 @@ export class TokenService {
   }
 
   async reissuanceToken(userId: number): Promise<ReissuanceDto> {
-    const user: User = await this.userService.findOrFailByUserId(userId);
+    const user: User = await this.userService.findByUserId(userId);
     const token = this.createAccessToken(user.googleId, user.name, user.role);
     return new ReissuanceDto(token);
   }
