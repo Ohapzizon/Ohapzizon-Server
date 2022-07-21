@@ -3,7 +3,7 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
-  HttpStatus,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -12,27 +12,28 @@ import { HttpAdapterHost } from '@nestjs/core';
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
     private readonly logger: Logger,
-    private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly httpAdapter: HttpAdapterHost,
   ) {}
   catch(exception: Error, host: ArgumentsHost): void {
-    const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
+    const { httpAdapter } = this.httpAdapter;
 
-    const httpStatus =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    if (!(exception instanceof HttpException)) {
+      exception = new InternalServerErrorException();
+      this.logger.debug(exception.stack);
+    }
 
+    const httpStatus = (exception as HttpException).getStatus();
     const errorResponse = (exception as HttpException).getResponse();
-    const stackTrace = exception.stack; // 디버깅용
 
     const log = {
       timestamp: new Date().toISOString(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
-      errorResponse,
+      method: httpAdapter.getRequestMethod(ctx.getRequest()),
+      error: errorResponse,
     };
     this.logger.error(log);
-    this.logger.debug(stackTrace);
+
     httpAdapter.reply(ctx.getResponse(), errorResponse, httpStatus);
   }
 }
