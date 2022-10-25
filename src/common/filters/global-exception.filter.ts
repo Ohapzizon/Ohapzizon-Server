@@ -4,36 +4,76 @@ import {
   ExceptionFilter,
   HttpException,
   InternalServerErrorException,
-  Logger,
+  LoggerService,
+  NotFoundException,
 } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
+import { AbstractHttpAdapter } from '@nestjs/core';
+import { ResponseEntity } from '../response/response.entity';
+import { instanceToPlain } from 'class-transformer';
+import { ValidationError } from 'class-validator';
+import { CustomValidationError } from './custom-validation.error';
+import { ResponseStatus } from '../response/response.status';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
-    private readonly logger: Logger,
-    private readonly httpAdapter: HttpAdapterHost,
+    private readonly logger: LoggerService,
+    private readonly httpAdapter: AbstractHttpAdapter,
   ) {}
-  catch(exception: Error, host: ArgumentsHost): void {
+  async catch(exception: any, host: ArgumentsHost): Promise<void> {
     const ctx = host.switchToHttp();
-    const { httpAdapter } = this.httpAdapter;
 
     if (!(exception instanceof HttpException)) {
-      exception = new InternalServerErrorException();
-      this.logger.debug(exception.stack);
+      switch (exception.name) {
+        case 'EntityNotFoundError':
+          exception = new NotFoundException(
+            '요청하신 자료를 찾을 수 없습니다.',
+          );
+          break;
+        default:
+          this.logger.debug(exception.stack);
+          exception = new InternalServerErrorException('서버 에러 입니다.');
+          break;
+      }
     }
 
-    const httpStatus = (exception as HttpException).getStatus();
-    const errorResponse = (exception as HttpException).getResponse();
+    const responseBody = (exception as HttpException).getResponse();
+    const ResponseStatusValue =
+      Object.keys(ResponseStatus)[
+        Object.values(ResponseStatus).indexOf(
+          responseBody['statusCode'] as ResponseStatus,
+        )
+      ];
+    const isValidationError = responseBody instanceof ValidationError;
 
     const log = {
       timestamp: new Date().toISOString(),
-      path: httpAdapter.getRequestUrl(ctx.getRequest()),
-      method: httpAdapter.getRequestMethod(ctx.getRequest()),
-      error: errorResponse,
+      path: this.httpAdapter.getRequestUrl(ctx.getRequest()),
+      method: this.httpAdapter.getRequestMethod(ctx.getRequest()),
+      responseBody,
     };
     this.logger.error(log);
 
-    httpAdapter.reply(ctx.getResponse(), errorResponse, httpStatus);
+    await this.httpAdapter.reply(
+      ctx.getResponse(),
+      instanceToPlain(
+        ResponseEntity.ERROR_WITH_DATA<CustomValidationError[]>(
+          responseBody['message'] === undefined
+            ? responseBody['error']
+            : responseBody['message'],
+          ResponseStatus[ResponseStatusValue],
+          isValidationError
+            ? [this.toCustomValidationErrorByNest(responseBody)]
+            : responseBody['error'],
+        ),
+      ),
+      responseBody['statusCode'],
+    );
+  }
+
+  toCustomValidationErrorByNest(
+    responseBody: ValidationError,
+  ): CustomValidationError {
+    return new CustomValidationError(responseBody);
   }
 }
