@@ -20,7 +20,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     private readonly logger: LoggerService,
     private readonly httpAdapter: AbstractHttpAdapter,
   ) {}
-  async catch(exception: any, host: ArgumentsHost): Promise<void> {
+  async catch(exception: Error, host: ArgumentsHost): Promise<void> {
     const ctx = host.switchToHttp();
 
     if (!(exception instanceof HttpException)) {
