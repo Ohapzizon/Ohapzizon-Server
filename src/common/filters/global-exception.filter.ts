@@ -1,11 +1,11 @@
 import {
-  ArgumentsHost,
+  ArgumentsHost, BadRequestException,
   Catch,
   ExceptionFilter,
   HttpException,
   InternalServerErrorException,
   LoggerService,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { AbstractHttpAdapter } from '@nestjs/core';
 import { ResponseEntity } from '../response/response.entity';
@@ -29,6 +29,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           exception = new NotFoundException(
             '요청하신 자료를 찾을 수 없습니다.',
           );
+          break;
+        case 'DateTimeParseException':
+          exception = new BadRequestException(exception.message);
           break;
         default:
           this.logger.debug(exception.stack);
