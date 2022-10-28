@@ -1,83 +1,59 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { GoogleCodeDto } from './dto/google-code.dto';
-import axios, { AxiosResponse } from 'axios';
-import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 import { TokenService } from '../token/token.service';
-import { LoginDto } from './dto/login.dto';
+import { SocialRegisterTokenData } from '../token/types/tokenData';
+import { RegisterUserProfileDto } from '../user/dto/register-user-profile.dto';
+import SocialAccount from '../entities/social-account.entity';
+import { TokenDto } from '../token/dto/token.dto';
+import { SocialProfile } from './social/types/social-profile';
 import { UserService } from '../user/user.service';
-import User from '../entities/user.entity';
-import { GoogleUserInfo } from './types/google-user.types';
+import dataSource from '../config/database/dataSource';
+import { LoginDto } from './dto/login.dto';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
-    private readonly configService: ConfigService,
-    private readonly logger: Logger,
   ) {}
 
-  private readonly clientID: string =
-    this.configService.get<string>('CLIENT_ID');
-  private readonly clientSecret: string =
-    this.configService.get<string>('CLIENT_SECRET');
-  private readonly callbackURL: string =
-    this.configService.get<string>('CALLBACK_URL');
-
-  getGoogleRedirectURL() {
-    const hostName = 'https://accounts.google.com';
-    const responseType = 'code';
-    const scope = 'email profile';
-    return {
-      url: `${hostName}/o/oauth2/v2/auth/oauthchooseaccount?response_type=${responseType}&redirect_uri=${this.callbackURL}&scope=${scope}&client_id=${this.clientID}`,
-      statusCode: 302,
-    };
-  }
-
-  async googleLogIn(googleCodeDto: GoogleCodeDto): Promise<LoginDto> {
-    try {
-      const googleUserInfo: GoogleUserInfo = await this.getGoogleUserInfo(
-        googleCodeDto,
+  async socialRegister(
+    socialRegisterTokenData: SocialRegisterTokenData,
+    registerUserDto: RegisterUserProfileDto,
+    res: Response,
+  ): Promise<LoginDto> {
+    const profile: SocialProfile = socialRegisterTokenData.profile;
+    return await dataSource.transaction(async (transactionalEntityManager) => {
+      const { user, userProfile } = await this.userService.register(
+        profile,
+        registerUserDto,
+        transactionalEntityManager,
       );
-      const registeredUser: User = await this.userService.register({
-        googleId: googleUserInfo.id,
-        email: googleUserInfo.email,
-        name: googleUserInfo.name,
+      const socialAccountRepository =
+        transactionalEntityManager.getRepository(SocialAccount);
+      const socialAccount: SocialAccount = socialAccountRepository.create({
+        socialId: socialRegisterTokenData.profile.id,
+        provider: socialRegisterTokenData.provider,
+        accessToken: socialRegisterTokenData.accessToken,
+        user: { id: user.id },
       });
-      const map: Map<string, string> = await this.tokenService.createTokens(
-        registeredUser,
+      await socialAccountRepository.save(socialAccount);
+      const tokenDto: TokenDto = await this.tokenService.generateUserToken(
+        user,
+        userProfile,
+        transactionalEntityManager,
       );
-      return new LoginDto(map);
-    } catch (e) {
-      this.logger.error(e);
-      throw new UnauthorizedException('회원가입에 실패하였습니다.');
-    }
+      this.tokenService.setTokenCookie(
+        res,
+        tokenDto.accessToken,
+        tokenDto.refreshToken,
+      );
+      return new LoginDto(userProfile, tokenDto);
+    });
   }
 
-  logOut(userId: number): Promise<void> {
-    return this.tokenService.removeRefreshToken(userId);
-  }
-
-  private async getGoogleUserInfo(
-    googleCodeDto: GoogleCodeDto,
-  ): Promise<GoogleUserInfo> {
-    const { code } = googleCodeDto;
-    const getTokenUrl = `https://oauth2.googleapis.com/token?code=${code}&client_id=${this.clientID}&client_secret=${this.clientSecret}&redirect_uri=${this.callbackURL}&grant_type=authorization_code`;
-    try {
-      const response: AxiosResponse = await axios.post(getTokenUrl);
-      const { access_token } = response.data;
-      const { data } = await axios.get(
-        'https://www.googleapis.com/oauth2/v2/userinfo',
-        {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-          },
-        },
-      );
-      return data;
-    } catch (e) {
-      this.logger.error(e);
-      throw new UnauthorizedException('구글 인증에 실패했습니다.');
-    }
+  async logOut(userId: string, res: Response): Promise<void> {
+    await this.tokenService.disabledAuthTokenByUserId(userId);
+    await this.tokenService.resetTokenCookie(res);
   }
 }
