@@ -10,7 +10,7 @@ import { TokenDto } from '../../../token/dto/token.dto';
 import { socialAccountRepository } from '../social-account.repository';
 import { Response } from 'express';
 import axios from 'axios';
-import dataSource from '../../../config/database/dataSource';
+import dataSource from '../../../config/database/data-source';
 import { LocalDateTime } from '@js-joda/core';
 
 @Injectable()
