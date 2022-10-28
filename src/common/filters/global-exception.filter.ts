@@ -1,11 +1,12 @@
 import {
-  ArgumentsHost, BadRequestException,
+  ArgumentsHost,
+  BadRequestException,
   Catch,
   ExceptionFilter,
   HttpException,
   InternalServerErrorException,
   LoggerService,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { AbstractHttpAdapter } from '@nestjs/core';
 import { ResponseEntity } from '../response/response.entity';
