@@ -1,45 +1,65 @@
-import { Injectable } from '@nestjs/common';
-import { UserRepository } from './user.repository';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import User from '../entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import UserProfile from '../entities/user-profile.entity';
+import { EntityManager } from 'typeorm';
+import { SocialProfile } from '../auth/social/types/social-profile';
+import { RegisterUserProfileDto } from './dto/register-user-profile.dto';
+import { userRepository } from './user.repository';
+import { userProfileRepository } from './user-profile.repository';
+import { v4 as uuidv4 } from 'uuid';
+import { ShowUserProfileDto } from './dto/show-user-profile.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
-
-  async findByUserId(userId: number): Promise<User> {
-    return await this.userRepository.findOneOrFail({
-      userId: userId,
-    });
+  async findOneWithProfileByIdOrFail(userId: string): Promise<User> {
+    return userRepository.findOneByIdOrFail(userId);
   }
 
-  async register(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser: User | undefined = await this.userRepository.findOne({
-      googleId: createUserDto.googleId,
-    });
-    const user: User = this.userRepository.create({
-      googleId: createUserDto.googleId,
-      email: createUserDto.email,
-      name: createUserDto.name,
-    });
-    if (!existingUser || existingUser.name !== user.name)
-      await this.userRepository.upsert(user, ['googleId']);
-    return existingUser;
+  async findUserProfileByIdOrFail(
+    userProfileId: string,
+  ): Promise<ShowUserProfileDto> {
+    const userProfile: UserProfile =
+      await userProfileRepository.findUserProfileByIdOrFail(userProfileId);
+    return new ShowUserProfileDto(userProfile);
   }
 
-  async updateRefreshTokenById(
-    userId: number,
-    currentHashedRefreshToken: string | null,
+  async isExistByEmail(email: string): Promise<boolean> {
+    return userRepository.isExistByEmail(email);
+  }
+
+  async register(
+    profile: SocialProfile,
+    registerUserProfileDto: RegisterUserProfileDto,
+    entityManager: EntityManager,
+  ): Promise<{ user: User; userProfile: UserProfile }> {
+    const existUser: boolean = await this.isExistByEmail(profile.email);
+    if (existUser) throw new BadRequestException('User Is Already Exists');
+    const user: User = userRepository.create({
+      id: uuidv4(),
+      email: profile.email,
+      name: profile.name,
+    });
+    const userProfile: UserProfile = userProfileRepository.create({
+      displayName: registerUserProfileDto.displayName,
+      discordTag: registerUserProfileDto.discordTag,
+      grade: registerUserProfileDto.grade,
+      department: registerUserProfileDto.department,
+      user: { id: user.id },
+    });
+    if (profile.thumbnail) userProfile.thumbnail = profile.thumbnail;
+    await entityManager.insert(User, user);
+    await entityManager.insert(UserProfile, userProfile);
+    return { user, userProfile };
+  }
+
+  async updateProfileByUserId(
+    userId: string,
+    updateUserProfileDto: UpdateUserProfileDto,
   ): Promise<void> {
-    await this.userRepository.update(
-      { userId: userId },
-      {
-        currentHashedRefreshToken: currentHashedRefreshToken,
-      },
-    );
-  }
-
-  async withdrawal(userId: number): Promise<void> {
-    await this.userRepository.delete({ userId: userId });
+    const currentUser: User = await this.findOneWithProfileByIdOrFail(userId);
+    currentUser.profile.discordTag = updateUserProfileDto.discordTag;
+    currentUser.profile.displayName = updateUserProfileDto.displayName;
+    await userProfileRepository.save(currentUser.profile);
   }
 }
