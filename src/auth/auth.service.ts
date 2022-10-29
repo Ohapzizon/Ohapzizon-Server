@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TokenService } from '../token/token.service';
-import { SocialRegisterTokenData } from '../token/types/tokenData';
+import { SocialRegisterTokenData } from '../token/types/token-data';
 import { RegisterUserProfileDto } from '../user/dto/register-user-profile.dto';
 import SocialAccount from '../entities/social-account.entity';
 import { TokenDto } from '../token/dto/token.dto';

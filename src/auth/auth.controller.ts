@@ -13,7 +13,7 @@ import {
 } from '@nestjs/swagger';
 import { Auth } from '../common/decorators/auth.decorator';
 import { ResponseEntity } from '../common/response/response.entity';
-import { SocialRegisterTokenData } from '../token/types/tokenData';
+import { SocialRegisterTokenData } from '../token/types/token-data';
 import { RegisterUserProfileDto } from '../user/dto/register-user-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutResponse } from './res/logout.response';

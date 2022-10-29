@@ -3,7 +3,7 @@ import {
   AccessTokenData,
   RefreshTokenData,
   RegisterTokenData,
-} from '../../token/types/tokenData';
+} from '../../token/types/token-data';
 
 export const AccessToken = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
