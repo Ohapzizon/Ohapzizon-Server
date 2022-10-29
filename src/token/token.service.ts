@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { RefreshTokenData } from './types/tokenData';
+import { RefreshTokenData } from './types/token-data';
 import User from '../entities/user.entity';
 import AuthToken from '../entities/auth-token.entity';
 import { TokenDto } from './dto/token.dto';

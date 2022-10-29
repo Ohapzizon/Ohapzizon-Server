@@ -11,7 +11,7 @@ import {
   AccessToken,
   RefreshToken,
 } from '../common/decorators/token.decorator';
-import { RefreshTokenData } from './types/tokenData';
+import { RefreshTokenData } from './types/token-data';
 import { TokenDto } from './dto/token.dto';
 import { RefreshTokenResponse } from './res/refresh-token.response';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';

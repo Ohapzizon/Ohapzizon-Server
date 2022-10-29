@@ -1,4 +1,4 @@
-import { TokenData } from '../types/tokenData';
+import { TokenData } from '../types/token-data';
 import * as jwt from 'jsonwebtoken';
 import {
   GoneException,
