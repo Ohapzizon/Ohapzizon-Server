@@ -1,0 +1,80 @@
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Grade } from '../enum/grade';
+import { Department } from '../enum/department';
+import { Exclude, Expose } from 'class-transformer';
+import UserProfile from '../../entities/user-profile.entity';
+
+export class ShowUserProfileDto {
+  @ApiHideProperty() @Exclude() private readonly _userProfileId: number;
+  @ApiHideProperty() @Exclude() private readonly _displayName: string;
+  @ApiHideProperty() @Exclude() private readonly _thumbnail: string;
+  @ApiHideProperty() @Exclude() private readonly _discordTag?: string;
+  @ApiHideProperty() @Exclude() private readonly _grade: Grade;
+  @ApiHideProperty() @Exclude() private readonly _department: Department;
+
+  constructor(profile: UserProfile) {
+    this._userProfileId = profile.id;
+    this._displayName = profile.displayName;
+    this._thumbnail = profile.thumbnail;
+    this._discordTag = profile.discordTag;
+    this._grade = profile.grade;
+    this._department = profile.department;
+  }
+
+  @ApiProperty({
+    name: 'userProfileId',
+    example: 1,
+  })
+  @Expose()
+  get userProfileId(): number {
+    return this._userProfileId;
+  }
+
+  @ApiProperty({
+    name: 'displayName',
+    example: '송유현',
+  })
+  @Expose()
+  get displayName(): string {
+    return this._displayName;
+  }
+
+  @ApiProperty({
+    name: 'thumbnail',
+    example:
+      'https://lh3.googleusercontent.com/a/ALm5wu2wfmlLoAS0UDsflc_pFbRz09LsGW_P30Y9uY-r=s96-c',
+  })
+  @Expose()
+  get thumbnail(): string {
+    return this._thumbnail;
+  }
+
+  @ApiProperty({
+    name: 'discordTag',
+    example: '송유현#1895',
+  })
+  @Expose()
+  get discordTag(): string | null {
+    return this._discordTag;
+  }
+
+  @ApiProperty({
+    name: 'grade',
+    enum: Grade,
+    example: Grade.THIRD,
+  })
+  @Expose()
+  get grade(): Grade {
+    return this._grade;
+  }
+
+  @ApiProperty({
+    name: 'department',
+    enum: Department,
+    example: Department.IOT,
+  })
+  @Expose()
+  get department(): Department {
+    return this._department;
+  }
+}

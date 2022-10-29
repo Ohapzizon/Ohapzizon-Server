@@ -1,89 +1,69 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PostRepository } from './post.repository';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import Post from '../entities/post.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { UserService } from '../user/user.service';
-import User from '../entities/user.entity';
+import * as _ from 'lodash';
 import { ShowPostDto } from './dto/show-post.dto';
-import { ShowPostDtoBuilder } from './builder/show-post-dto.builder';
-import { Role } from '../user/enum/role';
+import { postRepository } from './post.repository';
 
 @Injectable()
 export class PostService {
-  constructor(
-    private readonly postRepository: PostRepository,
-    private readonly userService: UserService,
-  ) {}
-
-  async findByPostIdx(postIdx: number): Promise<Post> {
-    return await this.postRepository.findOneOrFail({
-      idx: postIdx,
-    });
+  async findOneByIdOrFail(postId: number): Promise<Post> {
+    return postRepository.findOneByIdOrFail(postId);
   }
 
-  async findShowPostDtoByPostIdx(postIdx: number): Promise<ShowPostDto> {
-    const post: Post = await this.findByPostIdx(postIdx);
-    return new ShowPostDtoBuilder()
-      .setIdx(post.idx)
-      .setTitle(post.title)
-      .setContents(post.contents)
-      .setMaxCount(post.maxCount)
-      .setMealTime(post.mealTime)
-      .setWriter(post.writer.name)
-      .build();
+  async findShowPostDtoByIdOrFail(postId: number): Promise<ShowPostDto> {
+    const post = await postRepository
+      .findShowPost()
+      .where('p.id = :id', { id: postId })
+      .getRawOne<ShowPostDto>();
+    if (!post) throw new NotFoundException('요청하신 자료를 찾을 수 없습니다.');
+    return post;
   }
 
-  async findAllShowPostDto(): Promise<ShowPostDto[]> {
-    const post: Post[] = await this.postRepository.find();
-    return post.map((post) =>
-      new ShowPostDtoBuilder()
-        .setIdx(post.idx)
-        .setTitle(post.title)
-        .setContents(post.contents)
-        .setMaxCount(post.maxCount)
-        .setMealTime(post.mealTime)
-        .setWriter(post.writer.name)
-        .build(),
-    );
+  async isExistById(postId: number): Promise<boolean> {
+    return postRepository.isExistById(postId);
+  }
+
+  async findAll(): Promise<ShowPostDto[]> {
+    return postRepository.findShowPost().getRawMany<ShowPostDto>();
   }
 
   async posting(
-    userId: number,
+    userId: string,
     createPostDto: CreatePostDto,
   ): Promise<ShowPostDto> {
-    const currentUser: User = await this.userService.findOrFailByUserId(userId);
-    const post: Post = this.postRepository.create({
+    const post: Post = postRepository.create({
       title: createPostDto.title,
       contents: createPostDto.contents,
-      maxCount: createPostDto.maxCount,
-      writer: currentUser,
+      limit: createPostDto.limit,
+      targetGrade: createPostDto.targetGrade,
+      reserveDateTime: createPostDto.reserveDateTime,
+      writer: { id: userId },
     });
-    const savedPost: Post = await this.postRepository.save(post);
-    return this.findShowPostDtoByPostIdx(savedPost.idx);
+    const savedPost: Post = await postRepository.save(post);
+    return this.findShowPostDtoByIdOrFail(savedPost.id);
   }
 
   async updatePost(
-    postIdx: number,
-    userId: number,
+    postId: number,
+    userId: string,
     updatePostDto: UpdatePostDto,
   ): Promise<void> {
-    const post: Post = await this.findByPostIdx(postIdx);
-    const currentUser: User = await this.userService.findOrFailByUserId(userId);
-    if (JSON.stringify(post.writer) !== JSON.stringify(currentUser)) {
-      if (currentUser.role == Role.ADMIN) return;
+    const post: Post = await this.findOneByIdOrFail(postId);
+    if (!_.isEqual(post.writer.id, userId))
       throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
-    }
-    await this.postRepository.update({ idx: post.idx }, updatePostDto);
+    await postRepository.update({ id: post.id }, updatePostDto);
   }
 
-  async deletePost(postIdx: number, userId: number): Promise<void> {
-    const post: Post = await this.findByPostIdx(postIdx);
-    const currentUser: User = await this.userService.findOrFailByUserId(userId);
-    if (JSON.stringify(post.writer) !== JSON.stringify(currentUser)) {
-      if (currentUser.role == Role.ADMIN) return;
-      throw new ForbiddenException('게시글을 삭제할 권한이 없습니다.');
-    }
-    await this.postRepository.delete({ idx: post.idx });
+  async deletePost(postId: number, userId: string): Promise<void> {
+    const post: Post = await this.findOneByIdOrFail(postId);
+    if (!_.isEqual(post.writer.id, userId))
+      throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
+    await postRepository.delete({ id: post.id });
   }
 }
