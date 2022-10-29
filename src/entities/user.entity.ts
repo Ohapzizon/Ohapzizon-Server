@@ -1,45 +1,40 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import Team from './team.entity';
-import Post from './post.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Role } from '../user/enum/role';
+import UserProfile from './user-profile.entity';
 
 @Entity('user')
 export default class User {
-  @PrimaryGeneratedColumn({ name: 'user_id' })
-  userId: number;
+  @PrimaryColumn('uuid')
+  id: string;
 
-  @Column({ name: 'google_id', unique: true, nullable: false })
-  googleId: string;
-
-  @Column({ name: 'email', unique: true, nullable: false })
+  @Column({ unique: true })
   email: string;
 
-  @Column({ name: 'name', unique: false, nullable: false })
+  @Column()
   name: string;
 
   @Column({
-    name: 'role',
     type: 'enum',
     enum: Role,
     default: Role.USER,
   })
   role: Role;
 
-  @Column({
-    name: 'current_hashed_refresh_token',
-    nullable: true,
-    default: null,
-    select: false,
-  })
-  currentHashedRefreshToken?: string;
+  @CreateDateColumn()
+  createdAt: Date;
 
-  @OneToMany(() => Post, (post) => post.writer, {
-    cascade: ['insert', 'update', 'remove'],
-  })
-  post: Post[];
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-  @OneToMany(() => Team, (team) => team.participants, {
-    cascade: ['insert', 'update', 'remove'],
+  @OneToOne(() => UserProfile, (profile) => profile.user, {
+    nullable: false,
   })
-  team: Team[];
+  profile: UserProfile;
 }

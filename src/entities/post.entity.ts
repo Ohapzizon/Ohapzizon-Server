@@ -1,65 +1,53 @@
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import Team from './team.entity';
 import User from './user.entity';
-import { MealTime } from '../post/enum/meal-time';
+import { TargetGrade } from '../post/enum/target-grade';
+import { LocalDateTime } from '@js-joda/core';
+import { LocalDateTimeTransformer } from '../common/transformer/local-date-time.transformer';
 
 @Entity('post')
 export default class Post {
-  @PrimaryGeneratedColumn({ name: 'post_idx' })
-  idx: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ name: 'title' })
+  @Column({ length: 255 })
   title: string;
 
-  @Column({ name: 'contents' })
+  @Column('text')
   contents: string;
 
-  @Column({ name: 'max_count' })
-  maxCount: number;
+  @Column()
+  limit: number;
 
   @Column({
-    name: 'meal_time',
     type: 'enum',
-    enum: MealTime,
+    enum: TargetGrade,
   })
-  mealTime: MealTime;
+  targetGrade: TargetGrade;
 
-  @CreateDateColumn({ name: 'created_at', select: false })
+  @Column({
+    type: 'datetime',
+    transformer: new LocalDateTimeTransformer(),
+  })
+  reserveDateTime: LocalDateTime;
+
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', select: false })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.post, {
+  @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
-    orphanedRowAction: 'delete',
-    eager: true,
+    nullable: false,
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'fk_user_id' })
   writer: User;
-
-  @OneToMany(() => Team, (team) => team.post, {
-    cascade: ['insert', 'update', 'remove'],
-  })
-  team: Team[];
-
-  @BeforeInsert()
-  private timeCheck(): void {
-    const currentDate: Date = new Date();
-    const currentHour = currentDate.getHours();
-    const currentMinute = currentDate.getMinutes();
-    if (0 <= currentHour && currentHour <= 13 && currentMinute <= 30)
-      this.mealTime = MealTime.LUNCH;
-    else this.mealTime = MealTime.DINNER;
-  }
 }
