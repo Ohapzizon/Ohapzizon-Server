@@ -1,6 +1,6 @@
-import dataSource from '../../config/database/dataSource';
+import dataSource from '../../config/database/data-source';
 import SocialAccount from '../../entities/social-account.entity';
-import { isExistQuery } from '../../common/row-query/isExists';
+import { isExistQuery } from '../../common/row-query/is-exists';
 
 export const socialAccountRepository = dataSource
   .getRepository(SocialAccount)

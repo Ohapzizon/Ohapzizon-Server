@@ -6,7 +6,7 @@ import SocialAccount from '../entities/social-account.entity';
 import { TokenDto } from '../token/dto/token.dto';
 import { SocialProfile } from './social/types/social-profile';
 import { UserService } from '../user/user.service';
-import dataSource from '../config/database/dataSource';
+import dataSource from '../config/database/data-source';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 
