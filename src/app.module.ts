@@ -2,7 +2,7 @@ import { Logger, Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { TeamModule } from './team/team.module';
 import { ConfigModule } from '@nestjs/config';
-import { validationSchema } from './config/validationSchema';
+import { validationSchema } from './config/validation-schema';
 
 @Module({
   imports: [

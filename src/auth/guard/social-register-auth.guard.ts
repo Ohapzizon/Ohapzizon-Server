@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SocialRegisterTokenData } from '../../token/types/tokenData';
+import { SocialRegisterTokenData } from '../../token/types/token-data';
 import { validateToken } from '../../token/lib/token';
 import { ConfigService } from '@nestjs/config';
 

@@ -1,46 +1,52 @@
-import {
-  Controller,
-  Get,
-  HttpStatus,
-  ParseIntPipe,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { TokenService } from './token.service';
-import { JwtRefreshGuard } from '../auth/guard/jwt-refresh.guard';
-import { UserDecorator } from '../common/decorators/user.decorator';
 import {
-  ApiBearerAuth,
-  ApiHeader,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ReissuanceDto } from './dto/reissuance.dto';
-import { ReissuanceResponse } from './response/reissuance.response';
+import { ResponseEntity } from '../common/response/response.entity';
+import {
+  AccessToken,
+  RefreshToken,
+} from '../common/decorators/token.decorator';
+import { RefreshTokenData } from './types/token-data';
+import { TokenDto } from './dto/token.dto';
+import { RefreshTokenResponse } from './res/refresh-token.response';
+import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
+import { Response } from 'express';
+import { currentUserByIdPipe } from '../common/pipe/current-user-by-id.pipe';
+import User from '../entities/user.entity';
+import { RefreshAuth } from '../common/decorators/refresh-auth.decorator';
 
-@ApiTags('Refresh')
+@ApiInternalServerErrorResponse({
+  description: '서버 에러입니다.',
+  type: InternalServerError,
+})
+@ApiTags('token')
 @Controller('token')
 export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
 
   @ApiOperation({ summary: '토큰 재발급' })
-  @ApiHeader({
-    name: 'refresh',
-    required: true,
-    description: 'Refresh Token',
+  @ApiOkResponse({
+    description: '토큰 재발급에 성공하였습니다.',
+    type: RefreshTokenResponse,
   })
-  @UseGuards(JwtRefreshGuard)
-  @ApiBearerAuth('accessToken')
-  @Get('refresh')
-  async refresh(
-    @UserDecorator('userId', ParseIntPipe) userId: number,
-  ): Promise<ReissuanceResponse> {
-    const token: ReissuanceDto = await this.tokenService.reissuanceToken(
-      userId,
+  @RefreshAuth()
+  @Get()
+  async refreshToken(
+    @AccessToken('sub', currentUserByIdPipe) currentUser: User,
+    @RefreshToken() refreshTokenData: RefreshTokenData,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ResponseEntity<TokenDto>> {
+    const data: TokenDto = await this.tokenService.refreshUserToken(
+      currentUser,
+      currentUser.profile,
+      refreshTokenData,
+      res,
     );
-    return new ReissuanceResponse(
-      HttpStatus.OK,
-      '토큰을 재발급하였습니다.',
-      token,
-    );
+    return ResponseEntity.OK_WITH_DATA('토큰 재발급에 성공하였습니다.', data);
   }
 }
