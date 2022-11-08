@@ -10,6 +10,10 @@ import { validationSchema } from './config/validation-schema';
       isGlobal: true,
       cache: true,
       validationSchema: validationSchema,
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.production.env'
+          : '.development.env',
     }),
     AuthModule,
     TeamModule,
