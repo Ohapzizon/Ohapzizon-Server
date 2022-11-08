@@ -6,12 +6,10 @@ import User from '../entities/user.entity';
 import AuthToken from '../entities/auth-token.entity';
 import { TokenDto } from './dto/token.dto';
 import dataSource from '../config/database/data-source';
-import { EntityManager } from 'typeorm';
 import { Response } from 'express';
 import { UserService } from '../user/user.service';
 import { authTokenRepository } from './token.repository';
 import UserProfile from '../entities/user-profile.entity';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class TokenService {
@@ -42,7 +40,7 @@ export class TokenService {
   async generateUserToken(
     user: User,
     userProfile: UserProfile,
-    entityManger: EntityManager,
+    authToken: AuthToken,
   ): Promise<TokenDto> {
     const accessToken = this.generateAccessToken({
       sub: user.id,
@@ -51,19 +49,9 @@ export class TokenService {
       email: user.email,
       role: user.role,
     });
-    let authToken: AuthToken | null = await authTokenRepository.findOneByUserId(
-      user.id,
-    );
-    if (!authToken) {
-      authToken = authTokenRepository.create({
-        id: uuidv4(),
-        user: { id: user.id },
-      });
-    }
     const refreshToken = this.generateRefreshToken({
       sub: authToken.id,
     });
-    await entityManger.insert(AuthToken, authToken);
     return new TokenDto(accessToken, refreshToken);
   }
 
@@ -94,11 +82,13 @@ export class TokenService {
       const refreshToken = this.generateRefreshToken({
         sub: authToken.id,
       });
-      this.setTokenCookie(res, accessToken, refreshToken);
-      return new TokenDto(accessToken, refreshToken);
+      const tokenDto = new TokenDto(accessToken, refreshToken);
+      this.setTokenCookie(res, tokenDto);
+      return tokenDto;
     }
-    this.setTokenCookie(res, accessToken);
-    return new TokenDto(accessToken);
+    const tokenDto = new TokenDto(accessToken);
+    this.setTokenCookie(res, tokenDto);
+    return tokenDto;
   }
 
   async disabledAuthTokenByUserId(userId: string): Promise<void> {
@@ -135,7 +125,7 @@ export class TokenService {
     });
   }
 
-  setTokenCookie(res: Response, accessToken: string, refreshToken?: string) {
+  setTokenCookie(res: Response, { accessToken, refreshToken }: TokenDto): void {
     res.cookie('accessToken', accessToken, {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
@@ -146,7 +136,7 @@ export class TokenService {
     });
   }
 
-  async resetTokenCookie(res: Response) {
+  resetTokenCookie(res: Response): void {
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
   }
