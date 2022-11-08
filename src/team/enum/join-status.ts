@@ -1,4 +1,4 @@
-export enum Status {
+export enum JoinStatus {
   WAIT = 'WAIT',
   ACCEPT = 'ACCEPT',
   REJECT = 'REJECT',

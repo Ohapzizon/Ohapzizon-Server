@@ -1,11 +1,11 @@
-import { Status } from '../enum/status';
+import { JoinStatus } from '../enum/join-status';
 import { Exclude, Expose } from 'class-transformer';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 
 export class ShowTeamDto {
   @ApiHideProperty() @Exclude() private readonly _id: number;
   @ApiHideProperty() @Exclude() private readonly _participants: string;
-  @ApiHideProperty() @Exclude() private readonly _status: Status;
+  @ApiHideProperty() @Exclude() private readonly _status: JoinStatus;
   @ApiHideProperty() @Exclude() private readonly _bio: string;
 
   @ApiProperty({
@@ -40,11 +40,11 @@ export class ShowTeamDto {
   @ApiProperty({
     name: 'status',
     description: '상태',
-    enum: Status,
-    example: Status.ACCEPT,
+    enum: JoinStatus,
+    example: JoinStatus.ACCEPT,
   })
   @Expose()
-  get status(): Status {
+  get status(): JoinStatus {
     return this._status;
   }
 }

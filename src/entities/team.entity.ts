@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import Post from './post.entity';
 import User from './user.entity';
-import { Status } from '../team/enum/status';
+import { JoinStatus } from '../team/enum/join-status';
 
 @Entity('team')
 export default class Team {
@@ -21,10 +21,10 @@ export default class Team {
 
   @Column({
     type: 'enum',
-    enum: Status,
-    default: Status.WAIT,
+    enum: JoinStatus,
+    default: JoinStatus.WAIT,
   })
-  status: Status;
+  status: JoinStatus;
 
   @CreateDateColumn()
   createdAt: Date;
