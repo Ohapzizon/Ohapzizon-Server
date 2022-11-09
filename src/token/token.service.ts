@@ -7,16 +7,12 @@ import AuthToken from '../entities/auth-token.entity';
 import { TokenDto } from './dto/token.dto';
 import dataSource from '../config/database/data-source';
 import { Response } from 'express';
-import { UserService } from '../user/user.service';
 import { authTokenRepository } from './token.repository';
 import UserProfile from '../entities/user-profile.entity';
 
 @Injectable()
 export class TokenService {
-  constructor(
-    private readonly userService: UserService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   private ACCESS_TOKEN_SECRET = this.configService.get<string>(
     'ACCESS_TOKEN_SECRET',
@@ -45,7 +41,7 @@ export class TokenService {
     const accessToken = this.generateAccessToken({
       sub: user.id,
       name: user.name,
-      nickname: userProfile.displayName,
+      displayName: userProfile.displayName,
       email: user.email,
       role: user.role,
     });
@@ -72,7 +68,7 @@ export class TokenService {
     const accessToken = this.generateAccessToken({
       sub: user.id,
       name: user.name,
-      nickname: userProfile.displayName,
+      displayName: userProfile.displayName,
       email: user.email,
       role: user.role,
     });
@@ -105,7 +101,7 @@ export class TokenService {
     return jwt.sign(payload, this.REGISTER_TOKEN_SECRET, {
       issuer: 'ohapzizon.com',
       algorithm: 'HS256',
-      expiresIn: this.REGISTER_TOKEN_EXPIRATION,
+      expiresIn: this.REGISTER_TOKEN_EXPIRATION + 'ms',
     });
   }
 
@@ -113,7 +109,7 @@ export class TokenService {
     return jwt.sign(payload, this.ACCESS_TOKEN_SECRET, {
       issuer: 'ohapzizon.com',
       algorithm: 'HS256',
-      expiresIn: this.ACCESS_TOKEN_EXPIRATION,
+      expiresIn: this.ACCESS_TOKEN_EXPIRATION + 'ms',
     });
   }
 
@@ -121,17 +117,17 @@ export class TokenService {
     return jwt.sign(payload, this.REFRESH_TOKEN_SECRET, {
       issuer: 'ohapzizon',
       algorithm: 'HS256',
-      expiresIn: this.REFRESH_TOKEN_EXPIRATION,
+      expiresIn: this.REFRESH_TOKEN_EXPIRATION + 'ms',
     });
   }
 
   setTokenCookie(res: Response, { accessToken, refreshToken }: TokenDto): void {
     res.cookie('accessToken', accessToken, {
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: this.ACCESS_TOKEN_EXPIRATION,
       httpOnly: true,
     });
     res.cookie('refreshToken', refreshToken, {
-      maxAge: 1000 * 60 * 60 * 24 * 30,
+      maxAge: this.REFRESH_TOKEN_EXPIRATION,
       httpOnly: true,
     });
   }

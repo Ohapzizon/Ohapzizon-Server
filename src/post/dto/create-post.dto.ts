@@ -38,10 +38,11 @@ export class CreatePostDto {
     default: TargetGrade.ALL,
   })
   @Expose()
-  @IsNotEmpty()
   @IsEnum(TargetGrade)
+  @IsNotEmpty()
   targetGrade: TargetGrade;
 
+  // TODO
   // @ApiProperty({
   //   name: 'reserveDateTime',
   //   default: '2022-10-27 12:10:24',

@@ -1,5 +1,5 @@
 export type SocialProfile = {
-  id: string;
+  socialId: string;
   name: string;
   email: string;
   thumbnail?: string | null;

@@ -13,7 +13,7 @@ export class TokenDto {
   @ApiProperty({
     name: 'accessToken',
     example:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiVVNFUiIsImlhdCI6MTY2NTg5MTkzNSwiZXhwIjoxNzUyMjkxOTM1LCJpc3MiOiJvaGFweml6b24iLCJzdWIiOiJhY2Nlc3NfdG9rZW4ifQ.wyRCN4rdIKs6rG4jL1XnPG_azx2W0Ed2SvpRlW4Rlu8',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNzg3YzlhMi1kNjM1LTRhZGQtYjlmZi02OWYwMzk4MGU4ZmQiLCJuYW1lIjoi7Iah7Jyg7ZiEIiwibmlja25hbWUiOiLshqHsnKDtmIQiLCJlbWFpbCI6ImRvb25nMzM3M0BnbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTY2ODAwNDc3NywiZXhwIjoxNjY4MDA2NTc3LCJpc3MiOiJvaGFweml6b24uY29tIn0.JjQ_UfgR06gFL4EFFXZY0EGSZsqF8bMQvZoBDGaU_wU',
   })
   @Expose()
   get accessToken(): string {
@@ -23,7 +23,7 @@ export class TokenDto {
   @ApiProperty({
     name: 'refreshToken',
     example:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiVVNFUiIsImlhdCI6MTY2NTg5MTkzNSwiZXhwIjoxNzUyMjkxOTM1LCJpc3MiOiJvaGFweml6b24iLCJzdWIiOiJhY2Nlc3NfdG9rZW4ifQ.wyRCN4rdIKs6rG4jL1XnPG_azx2W0Ed2SvpRlW4Rlu8',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1MzNlMjVmOC0zYjZiLTQ1ZmUtYjBiYS02YTFlMDJmMzVhOWYiLCJpYXQiOjE2NjgwMDQ3NzcsImV4cCI6MTY3MDU5Njc3NywiaXNzIjoib2hhcHppem9uIn0.LN9_ZH3gm2MDI0S1KISW85AjsQo8fCSfEKV1_ETTJAc',
   })
   @Expose()
   get refreshToken(): string | null {

@@ -48,7 +48,7 @@ export class AuthService {
         user: { id: user.id },
       });
       const socialAccount: SocialAccount = socialAccountRepository.create({
-        socialId: profile.id,
+        socialId: profile.socialId,
         provider: provider,
         accessToken: accessToken,
         user: { id: user.id },
