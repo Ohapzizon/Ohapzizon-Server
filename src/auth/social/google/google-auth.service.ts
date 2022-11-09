@@ -44,7 +44,7 @@ export class GoogleAuthService {
     const accessToken: string = await this.getGoogleAccessToken(code);
     const profile: SocialProfile = await this.getGoogleProfile(accessToken);
     const existSocialAccount: boolean =
-      await socialAccountRepository.isExistBySocialIdWithProvider(
+      await socialAccountRepository.isExistBySocialIdAndProvider(
         profile.socialId,
         'google',
       );
