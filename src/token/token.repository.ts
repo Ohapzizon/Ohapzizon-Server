@@ -3,15 +3,17 @@ import dataSource from '../config/database/data-source';
 
 export const authTokenRepository = dataSource.getRepository(AuthToken).extend({
   async findOneByIdOrFail(tokenId: string): Promise<AuthToken> {
-    return this.createQueryBuilder('a')
-      .where('a.id = :id', { id: tokenId })
-      .where('a.disabled = :disabled', { disabled: false })
+    return authTokenRepository
+      .createQueryBuilder('authToken')
+      .where('authToken.id = :id', { id: tokenId })
+      .where('authToken.disabled = :disabled', { disabled: false })
       .getOneOrFail();
   },
-  async findOneByUserId(userId: string): Promise<AuthToken | null> {
-    return this.createQueryBuilder('a')
-      .where('u.id = :id', { id: userId })
-      .innerJoin('a.user', 'u')
-      .getOne();
+  async findOneByUserIdOrFail(userId: string): Promise<AuthToken> {
+    return authTokenRepository
+      .createQueryBuilder('authToken')
+      .where('user.id = :id', { id: userId })
+      .innerJoin('authToken.user', 'user')
+      .getOneOrFail();
   },
 });
