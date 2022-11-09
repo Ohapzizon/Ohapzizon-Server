@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { GoogleAuthController } from './social/google/google-auth.controller';
-import { GoogleAuthService } from './social/google/google-auth.service';
-import { TokenModule } from '../token/token.module';
+import { UserService } from '../user/user.service';
+import { GoogleAuthModule } from './social/google/google-auth.module';
+import { TokenService } from '../token/token.service';
 
 @Module({
-  imports: [TokenModule],
-  controllers: [AuthController, GoogleAuthController],
-  providers: [AuthService, GoogleAuthService],
+  imports: [GoogleAuthModule],
+  controllers: [AuthController],
+  providers: [AuthService, TokenService, UserService],
 })
 export class AuthModule {}
