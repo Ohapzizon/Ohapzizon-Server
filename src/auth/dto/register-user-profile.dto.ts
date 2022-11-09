@@ -6,8 +6,8 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Grade } from '../enum/grade';
-import { Department } from '../enum/department';
+import { Grade } from '../../user/user-profile/enum/grade';
+import { Department } from '../../user/user-profile/enum/department';
 
 export class RegisterUserProfileDto {
   @ApiProperty({

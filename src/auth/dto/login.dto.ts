@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { TokenDto } from '../../token/dto/token.dto';
 import UserProfile from '../../entities/user-profile.entity';
-import { ShowUserProfileDto } from '../../user/dto/show-user-profile.dto';
+import { ShowUserProfileDto } from '../../user/user-profile/dto/show-user-profile.dto';
 
 export class LoginDto extends ShowUserProfileDto {
   @ApiHideProperty() @Exclude() private readonly _accessToken: string;
