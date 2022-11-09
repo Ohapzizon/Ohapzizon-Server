@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, HttpCode, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import {
   AccessToken,
   RegisterToken,
@@ -6,7 +15,9 @@ import {
 import { AuthService } from './auth.service';
 import {
   ApiCreatedResponse,
+  ApiHeader,
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -14,13 +25,16 @@ import {
 import { Auth } from '../common/decorators/auth.decorator';
 import { ResponseEntity } from '../common/response/response.entity';
 import { SocialRegisterTokenData } from '../token/types/token-data';
-import { RegisterUserProfileDto } from '../user/dto/register-user-profile.dto';
+import { RegisterUserProfileDto } from './dto/register-user-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutResponse } from './res/logout.response';
 import { SocialRegisterResponse } from './res/social-register.response';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
 import { Response } from 'express';
 import { SocialRegisterAuth } from '../common/decorators/social-register-auth.decorator';
+import { ProfileResponse } from './res/profile.response';
+import { SocialRegisterAuthGuard } from './guard/social-register-auth.guard';
+import { SocialProfileDto } from './dto/social-profile.dto';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -30,6 +44,26 @@ import { SocialRegisterAuth } from '../common/decorators/social-register-auth.de
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @ApiOperation({ summary: '프로필 조회' })
+  @ApiOkResponse({
+    description: '프로필 조회에 성공하였습니다.',
+    type: ProfileResponse,
+  })
+  @ApiNotFoundResponse({
+    description: '요청 값을 찾을 수 없습니다.',
+  })
+  @ApiHeader({ name: 'register_token' })
+  @UseGuards(SocialRegisterAuthGuard)
+  @Get('profile')
+  async getSocialProfile(
+    @RegisterToken('profile') profile: SocialProfileDto,
+  ): Promise<ResponseEntity<SocialProfileDto>> {
+    return ResponseEntity.OK_WITH_DATA(
+      '프로필 조회에 성공하였습니다.',
+      profile,
+    );
+  }
 
   @ApiOperation({ summary: '소셜 계정 등록' })
   @ApiCreatedResponse({
