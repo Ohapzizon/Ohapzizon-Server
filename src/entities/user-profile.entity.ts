@@ -8,8 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import User from './user.entity';
-import { Grade } from '../user/enum/grade';
-import { Department } from '../user/enum/department';
+import { Grade } from '../user/user-profile/enum/grade';
+import { Department } from '../user/user-profile/enum/department';
 
 @Entity('user_profile')
 export default class UserProfile {
@@ -28,14 +28,14 @@ export default class UserProfile {
   @Column({ type: 'enum', enum: Grade, default: Grade.NONE })
   grade: Grade;
 
+  @Column({ type: 'enum', enum: Department, default: Department.NONE })
+  department: Department;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @Column({ type: 'enum', enum: Department, default: Department.NONE })
-  department: Department;
 
   @OneToOne(() => User, (user) => user.profile, {
     onDelete: 'CASCADE',
