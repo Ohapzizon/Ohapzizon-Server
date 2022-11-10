@@ -1,26 +1,28 @@
 import dataSource from '../../config/database/data-source';
 import SocialAccount from '../../entities/social-account.entity';
-import { isExistQuery } from '../../common/row-query/is-exists';
+import { isExistQuery } from '../../common/query/is-exists';
 
 export const socialAccountRepository = dataSource
   .getRepository(SocialAccount)
   .extend({
     findOneBySocialIdOrFail(socialId: string): Promise<SocialAccount> {
-      return this.createQueryBuilder('s')
-        .where('s.social_id = :socialId', { socialId: socialId })
-        .innerJoinAndSelect('s.user', 'u')
-        .innerJoinAndSelect('u.profile', 'p')
+      return socialAccountRepository
+        .createQueryBuilder('socialAccount')
+        .where('socialAccount.social_id = :socialId', { socialId: socialId })
+        .innerJoinAndSelect('socialAccount.user', 'user')
+        .innerJoinAndSelect('user.profile', 'profile')
         .getOneOrFail();
     },
 
-    async isExistBySocialId(
+    async isExistBySocialIdAndProvider(
       socialId: string,
       provider: string,
     ): Promise<boolean> {
       return isExistQuery(
-        this.createQueryBuilder('s')
-          .select('s.id')
-          .where('s.social_id = ? AND s.provider = ?')
+        socialAccountRepository
+          .createQueryBuilder('socialAccount')
+          .select('socialAccount.id')
+          .where('socialAccount.social_id = ? AND socialAccount.provider = ?')
           .getQuery(),
         [`${socialId}`, `${provider}`],
       );
