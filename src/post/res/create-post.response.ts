@@ -3,7 +3,7 @@ import { ShowPostDto } from '../dto/show-post.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { ResponseStatus } from '../../common/response/response.status';
 
-export class CreatedPostResponse extends ResponseEntity<ShowPostDto> {
+export class CreatePostResponse extends ResponseEntity<ShowPostDto> {
   @ApiProperty({
     example: ResponseStatus.CREATED,
   })
