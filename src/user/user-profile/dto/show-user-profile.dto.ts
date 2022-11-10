@@ -2,23 +2,23 @@ import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Grade } from '../enum/grade';
 import { Department } from '../enum/department';
 import { Exclude, Expose } from 'class-transformer';
-import UserProfile from '../../entities/user-profile.entity';
+import UserProfile from '../../../entities/user-profile.entity';
 
 export class ShowUserProfileDto {
   @ApiHideProperty() @Exclude() private readonly _userProfileId: number;
   @ApiHideProperty() @Exclude() private readonly _displayName: string;
-  @ApiHideProperty() @Exclude() private readonly _thumbnail: string;
   @ApiHideProperty() @Exclude() private readonly _discordTag?: string;
+  @ApiHideProperty() @Exclude() private readonly _thumbnail?: string | null;
   @ApiHideProperty() @Exclude() private readonly _grade: Grade;
   @ApiHideProperty() @Exclude() private readonly _department: Department;
 
-  constructor(profile: UserProfile) {
-    this._userProfileId = profile.id;
-    this._displayName = profile.displayName;
-    this._thumbnail = profile.thumbnail;
-    this._discordTag = profile.discordTag;
-    this._grade = profile.grade;
-    this._department = profile.department;
+  constructor(userProfile: UserProfile) {
+    this._userProfileId = userProfile.id;
+    this._displayName = userProfile.displayName;
+    this._discordTag = userProfile.discordTag;
+    this._thumbnail = userProfile.thumbnail;
+    this._grade = userProfile.grade;
+    this._department = userProfile.department;
   }
 
   @ApiProperty({

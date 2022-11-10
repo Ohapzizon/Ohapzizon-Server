@@ -1,9 +1,9 @@
 import { ShowUserProfileDto } from '../dto/show-user-profile.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { ResponseEntity } from '../../common/response/response.entity';
-import { ResponseStatus } from '../../common/response/response.status';
+import { ResponseEntity } from '../../../common/response/response.entity';
+import { ResponseStatus } from '../../../common/response/response.status';
 
-export class FindUserResponse extends ResponseEntity<ShowUserProfileDto> {
+export class FindUserProfileResponse extends ResponseEntity<ShowUserProfileDto> {
   @ApiProperty({
     example: ResponseStatus.OK,
   })
