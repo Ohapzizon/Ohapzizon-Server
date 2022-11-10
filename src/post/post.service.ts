@@ -1,14 +1,12 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import Post from '../entities/post.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
-import * as _ from 'lodash';
 import { ShowPostDto } from './dto/show-post.dto';
 import { postRepository } from './post.repository';
+import { PostStatus } from './enum/post-status';
+import { plainToInstance } from 'class-transformer';
+import User from '../entities/user.entity';
 
 @Injectable()
 export class PostService {
@@ -16,21 +14,46 @@ export class PostService {
     return postRepository.findOneByIdOrFail(postId);
   }
 
-  async findShowPostDtoByIdOrFail(postId: number): Promise<ShowPostDto> {
-    const post = await postRepository
+  async findMyJoinedPost(userId: string): Promise<ShowPostDto[]> {
+    return postRepository
       .findShowPost()
-      .where('p.id = :id', { id: postId })
-      .getRawOne<ShowPostDto>();
-    if (!post) throw new NotFoundException('요청하신 자료를 찾을 수 없습니다.');
-    return post;
+      .innerJoin('post.team', 'team')
+      .innerJoin('team.user', 'participants')
+      .where('participants.id = :id', { id: userId })
+      .getRawMany();
   }
 
-  async isExistById(postId: number): Promise<boolean> {
-    return postRepository.isExistById(postId);
+  async findWriterByIdOrFail(postId: number): Promise<User> {
+    const row = await postRepository
+      .findWriter()
+      .where('post.id = :id', { id: postId })
+      .getRawOne();
+    if (!row) throw new NotFoundException('요청하신 자료를 찾을 수 없습니다.');
+    return plainToInstance(User, row);
+  }
+
+  async findWriterByTeamIdOrFail(teamId: number) {
+    const row = await postRepository
+      .findWriter()
+      .where('team.id = :id', { id: teamId })
+      .innerJoin('post.team', 'team')
+      .getRawOne();
+    if (!row) throw new NotFoundException('요청하신 자료를 찾을 수 없습니다.');
+    return plainToInstance(User, row);
+  }
+
+  async findShowPostDtoByIdOrFail(postId: number): Promise<ShowPostDto> {
+    const row = await postRepository
+      .findShowPost()
+      .where('post.id = :id', { id: postId })
+      .getRawOne();
+    if (!row) throw new NotFoundException('요청하신 자료를 찾을 수 없습니다.');
+    return plainToInstance(ShowPostDto, row);
   }
 
   async findAll(): Promise<ShowPostDto[]> {
-    return postRepository.findShowPost().getRawMany<ShowPostDto>();
+    const row = await postRepository.findShowPost().getRawMany();
+    return plainToInstance(ShowPostDto, row);
   }
 
   async posting(
@@ -49,21 +72,15 @@ export class PostService {
     return this.findShowPostDtoByIdOrFail(savedPost.id);
   }
 
-  async updatePost(
-    postId: number,
-    userId: string,
-    updatePostDto: UpdatePostDto,
-  ): Promise<void> {
-    const post: Post = await this.findOneByIdOrFail(postId);
-    if (!_.isEqual(post.writer.id, userId))
-      throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
+  async updatePost(post: Post, updatePostDto: UpdatePostDto): Promise<void> {
     await postRepository.update({ id: post.id }, updatePostDto);
   }
 
-  async deletePost(postId: number, userId: string): Promise<void> {
-    const post: Post = await this.findOneByIdOrFail(postId);
-    if (!_.isEqual(post.writer.id, userId))
-      throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
+  async closePost(post: Post): Promise<void> {
+    await postRepository.update({ id: post.id }, { status: PostStatus.CLOSED });
+  }
+
+  async deletePost(post: Post): Promise<void> {
     await postRepository.delete({ id: post.id });
   }
 }

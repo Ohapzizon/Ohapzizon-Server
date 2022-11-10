@@ -5,9 +5,13 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Put,
+  Query,
   SerializeOptions,
+  UseGuards,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -18,22 +22,25 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { AccessToken } from '../common/decorators/token.decorator';
 import { Auth } from '../common/decorators/auth.decorator';
-import { Role } from '../user/enum/role';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ResponseEntity } from '../common/response/response.entity';
 import { ShowPostDto } from './dto/show-post.dto';
-import { GROUP_ALL_POSTS, GROUP_POST } from './enum/group-all-post';
-import { CreatedPostResponse } from './res/created-post.response';
+import { CreatePostResponse } from './res/create-post.response';
 import { FindPostResponse } from './res/find-post.response';
 import { FindAllPostResponse } from './res/find-all-post.response';
-import { UpdatedPostResponse } from './res/updated-post.response';
-import { DeletedPostResponse } from './res/deleted-post.response';
+import { UpdatePostResponse } from './res/update-post.response';
+import { DeletePostResponse } from './res/delete-post.response';
 import { NotFoundError } from '../common/response/swagger/error/not-found.error';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
-import { postExistPipe } from '../common/pipe/post-exist.pipe';
+import { ClosePostResponse } from './res/close-post.response';
+import { WriterGuard } from './guard/writer.guard';
+import { postByIdPipe } from './pipe/post-by-id.pipe';
+import PostEntity from '../entities/post.entity';
+import { GROUP_ALL_POSTS, GROUP_POST } from './enum/group-post';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -50,7 +57,7 @@ export class PostController {
   @ApiOperation({ summary: '모집글 게시' })
   @ApiCreatedResponse({
     description: '모집글 게시에 성공하였습니다.',
-    type: CreatedPostResponse,
+    type: CreatePostResponse,
   })
   @Auth()
   @HttpCode(201)
@@ -80,7 +87,7 @@ export class PostController {
   })
   @Get(':postId')
   async findOnePost(
-    @Param('postId', postExistPipe) postId: number,
+    @Param('postId', ParseIntPipe) postId: number,
   ): Promise<ResponseEntity<ShowPostDto>> {
     const data: ShowPostDto = await this.postService.findShowPostDtoByIdOrFail(
       postId,
@@ -111,39 +118,61 @@ export class PostController {
   @ApiOperation({ summary: '모집글 수정' })
   @ApiOkResponse({
     description: '모집글 수정에 성공하였습니다.',
-    type: UpdatedPostResponse,
+    type: UpdatePostResponse,
   })
   @ApiNotFoundResponse({
     description: '요청하신 자료를 찾을 수 없습니다.',
     type: NotFoundError,
   })
-  @Auth(Role.USER)
-  @Put(':postId')
+  @ApiQuery({ name: 'postId', required: true, type: Number })
+  @UseGuards(WriterGuard)
+  @Auth()
+  @Put('')
   async updatePost(
-    @Param('postId', postExistPipe) postId: number,
-    @AccessToken('sub') userId: string,
+    @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<ResponseEntity<string>> {
-    await this.postService.updatePost(postId, userId, updatePostDto);
+    await this.postService.updatePost(post, updatePostDto);
     return ResponseEntity.OK_WITH('모집글 수정에 성공하였습니다.');
+  }
+
+  @ApiOperation({ summary: '모집글 마감' })
+  @ApiOkResponse({
+    description: '모집글 마감에 성공하였습니다.',
+    type: ClosePostResponse,
+  })
+  @ApiNotFoundResponse({
+    description: '요청하신 자료를 찾을 수 없습니다.',
+    type: NotFoundError,
+  })
+  @ApiQuery({ name: 'postId', required: true, type: Number })
+  @UseGuards(WriterGuard)
+  @Auth()
+  @Patch('close')
+  async closedPost(
+    @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
+  ): Promise<ResponseEntity<string>> {
+    await this.postService.closePost(post);
+    return ResponseEntity.OK_WITH('모집글 마감에 성공하였습니다.');
   }
 
   @ApiOperation({ summary: '모집글 삭제' })
   @ApiOkResponse({
     description: '모집글 삭제에 성공하였습니다.',
-    type: DeletedPostResponse,
+    type: DeletePostResponse,
   })
   @ApiNotFoundResponse({
     description: '요청하신 자료를 찾을 수 없습니다.',
     type: NotFoundError,
   })
-  @Auth(Role.USER)
-  @Delete(':postId')
+  @ApiQuery({ name: 'postId', required: false, type: Number })
+  @UseGuards(WriterGuard)
+  @Auth()
+  @Delete('')
   async deletePost(
-    @Param('postId', postExistPipe) postId: number,
-    @AccessToken('sub') userId: string,
+    @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
   ): Promise<ResponseEntity<string>> {
-    await this.postService.deletePost(postId, userId);
+    await this.postService.deletePost(post);
     return ResponseEntity.OK_WITH('모집글 삭제에 성공하였습니다.');
   }
 }
