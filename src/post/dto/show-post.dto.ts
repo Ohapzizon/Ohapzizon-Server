@@ -1,9 +1,10 @@
 import { TargetGrade } from '../enum/target-grade';
 import { Exclude, Expose } from 'class-transformer';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { GROUP_ALL_POSTS, GROUP_POST } from '../enum/group-all-post';
+import { GROUP_ALL_POSTS, GROUP_POST } from '../enum/group-post';
 import { LocalDateTime } from '@js-joda/core';
 import { DateTimeUtil } from '../../common/utils/date-time.util';
+import { PostStatus } from '../enum/post-status';
 
 @Expose({ groups: [GROUP_POST, GROUP_ALL_POSTS] })
 export class ShowPostDto {
@@ -22,6 +23,10 @@ export class ShowPostDto {
   @ApiHideProperty()
   @Exclude()
   private readonly _limit: number;
+
+  @ApiHideProperty()
+  @Exclude()
+  private readonly _status: PostStatus;
 
   @ApiHideProperty()
   @Exclude()
@@ -80,6 +85,16 @@ export class ShowPostDto {
   @Expose()
   get limit(): number {
     return this._limit;
+  }
+
+  @ApiProperty({
+    name: 'status',
+    description: '상태',
+    example: PostStatus.OPEN,
+  })
+  @Expose()
+  get status(): PostStatus {
+    return this._status;
   }
 
   @ApiProperty({
