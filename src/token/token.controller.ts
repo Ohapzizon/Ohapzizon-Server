@@ -16,7 +16,7 @@ import { TokenDto } from './dto/token.dto';
 import { RefreshTokenResponse } from './res/refresh-token.response';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
 import { Response } from 'express';
-import { currentUserByIdPipe } from '../common/pipe/current-user-by-id.pipe';
+import { userByIdPipe } from '../user/pipe/user-by-id.pipe';
 import User from '../entities/user.entity';
 import { RefreshAuth } from '../common/decorators/refresh-auth.decorator';
 
@@ -37,7 +37,7 @@ export class TokenController {
   @RefreshAuth()
   @Get()
   async refreshToken(
-    @AccessToken('sub', currentUserByIdPipe) currentUser: User,
+    @AccessToken('sub', userByIdPipe) currentUser: User,
     @RefreshToken() refreshTokenData: RefreshTokenData,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<TokenDto>> {
