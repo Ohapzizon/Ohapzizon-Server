@@ -2,23 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setSwaggerDocs } from './config/swagger/swagger';
 import { setNestApp } from './config/app/set-nest.app';
-import dataSource from './config/database/data-source';
+import { ConfigService } from '@nestjs/config';
 
 declare const module: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port: number = +process.env.PORT;
+  const configService: ConfigService = app.get(ConfigService);
+  const port = +configService.get<number>('PORT');
   setSwaggerDocs(app);
   setNestApp(app);
-  dataSource
-    .initialize()
-    .then(() => {
-      console.log('DataSource has been initialized');
-    })
-    .catch((err) =>
-      console.error('Error during Data Source initialization', err),
-    );
   await app
     .listen(port)
     .then(async () =>

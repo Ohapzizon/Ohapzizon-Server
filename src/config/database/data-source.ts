@@ -1,25 +1,36 @@
 import entities from '../../entities/index';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { DataSource } from 'typeorm';
-import { config } from 'dotenv';
-import { ConfigService } from '@nestjs/config';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-config();
-
-const configService = new ConfigService();
+dotenv.config({
+  path: path.resolve(
+    process.env.NODE_ENV === 'production'
+      ? '.production.env'
+      : '.development.env',
+  ),
+});
 
 const dataSource = new DataSource({
   type: 'mysql',
-  host: configService.get<string>('DB_HOST'),
-  port: +configService.get<number>('DB_PORT'),
-  username: configService.get<string>('DB_USER'),
-  password: configService.get<string>('DB_PW'),
-  database: configService.get<string>('DB_NAME'),
+  host: process.env.DB_HOST,
+  port: +process.env.DB_PORT,
+  username: process.env.DB_USER,
+  password: process.env.DB_PW,
+  database: process.env.DB_NAME,
   entities: entities,
-  dropSchema: false,
-  synchronize: false,
-  logging: true,
+  logging: process.env.NODE_ENV !== 'production',
   namingStrategy: new SnakeNamingStrategy(),
 });
+
+dataSource
+  .initialize()
+  .then(() => {
+    console.log('DataSource has been initialized');
+  })
+  .catch((err) => {
+    console.error('Error during Data Source initialization', err);
+  });
 
 export default dataSource;
