@@ -4,10 +4,11 @@ import {
   Delete,
   Get,
   HttpCode,
-  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TeamService } from './team.service';
 import {
@@ -16,26 +17,24 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { AccessToken } from '../common/decorators/token.decorator';
 import { Auth } from '../common/decorators/auth.decorator';
-import { Role } from '../user/enum/role';
-import { Status } from './enum/status';
 import { ResponseEntity } from '../common/response/response.entity';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { ShowTeamDto } from './dto/show-team.dto';
 import { JoinTeamResponse } from './res/join-team.response';
 import { FindTeamResponse } from './res/find-team.response';
 import { AcceptJoinResponse } from './res/accept-join.response';
-import { RejectJoinResponse } from './res/reject-join.response';
 import { CancelJoinResponse } from './res/cancel-join.response';
 import { NotFoundError } from '../common/response/swagger/error/not-found.error';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
-import { ShowPostDto } from '../post/dto/show-post.dto';
-import { FindMyJoinedPostResponse } from './res/find-my-joined-post.response';
-import { postExistPipe } from '../common/pipe/post-exist.pipe';
-import { teamExistPipe } from '../common/pipe/team-exist.pipe';
+import { WriterGuard } from '../post/guard/writer.guard';
+import { postByIdPipe } from '../post/pipe/post-by-id.pipe';
+import PostEntity from '../entities/post.entity';
+import { UpdateJoinStatusDto } from './dto/update-join-status.dto';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -55,16 +54,17 @@ export class TeamController {
     description: '참여에 성공하였습니다.',
     type: JoinTeamResponse,
   })
-  @Auth(Role.USER)
+  @ApiQuery({ name: 'postId', required: true, type: Number })
+  @Auth()
   @HttpCode(201)
-  @Post(':postId')
+  @Post('')
   async join(
-    @Param('postId', postExistPipe) postId: number,
+    @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
     @AccessToken('sub') userId: string,
     @Body() createTeamDto: CreateTeamDto,
   ): Promise<ResponseEntity<ShowTeamDto[]>> {
     const data: ShowTeamDto[] = await this.teamService.join(
-      postId,
+      post,
       userId,
       createTeamDto,
     );
@@ -83,12 +83,13 @@ export class TeamController {
     description: '신청자 명단 조회에 성공하였습니다.',
     type: FindTeamResponse,
   })
+  @ApiQuery({ name: 'postId', required: true, type: Number })
   @Get('')
   async findTeamByPostId(
-    @Query('postId', postExistPipe) postId: number,
+    @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
   ): Promise<ResponseEntity<ShowTeamDto[]>> {
     const data: ShowTeamDto[] = await this.teamService.findShowTeamDtoByPostId(
-      postId,
+      post.id,
     );
     return ResponseEntity.OK_WITH_DATA(
       '신청자 명단 조회에 성공하였습니다.',
@@ -96,54 +97,20 @@ export class TeamController {
     );
   }
 
-  @ApiOperation({
-    summary: '참여한 모집글 조회',
-    description: '자신이 참여한 모집글을 조회합니다.',
-  })
+  @ApiOperation({ summary: '신청 상태 변경' })
   @ApiOkResponse({
-    description: '참여한 모집글 조회에 성공하였습니다.',
-    type: FindMyJoinedPostResponse,
-  })
-  @Auth()
-  @Get('mypost')
-  async findMyJoinedPostByUserId(
-    @AccessToken('sub') userId: string,
-  ): Promise<ResponseEntity<ShowPostDto[]>> {
-    const data: ShowPostDto[] = await this.teamService.findMyJoinedPost(userId);
-    return ResponseEntity.OK_WITH_DATA(
-      '참여한 모집글 조회에 성공하였습니다.',
-      data,
-    );
-  }
-
-  @ApiOperation({ summary: '신청 수락' })
-  @ApiOkResponse({
-    description: '신청 수락에 성공하였습니다.',
+    description: '신청 상태 변경에 성공하였습니다.',
     type: AcceptJoinResponse,
   })
-  @Auth(Role.USER)
-  @Patch('accept/:teamId')
-  async acceptJoinRequest(
-    @Param('teamId', teamExistPipe) teamId: number,
-    @AccessToken('sub') userId: string,
+  @UseGuards(WriterGuard)
+  @Auth()
+  @Patch('status')
+  async updateJoinStatus(
+    @Query('teamId', ParseIntPipe) teamId: number,
+    @Body() updateJoinStatusDto: UpdateJoinStatusDto,
   ): Promise<ResponseEntity<string>> {
-    await this.teamService.updateStatus(teamId, userId, Status.ACCEPT);
-    return ResponseEntity.OK_WITH('신청 수락에 성공하였습니다.');
-  }
-
-  @ApiOperation({ summary: '신청 거절' })
-  @ApiOkResponse({
-    description: '신청 거절에 성공하였습니다.',
-    type: RejectJoinResponse,
-  })
-  @Auth(Role.USER)
-  @Patch('reject/:teamId')
-  async rejectJoinRequest(
-    @Param('teamId', teamExistPipe) teamId: number,
-    @AccessToken('sub') userId: string,
-  ): Promise<ResponseEntity<string>> {
-    await this.teamService.updateStatus(teamId, userId, Status.REJECT);
-    return ResponseEntity.OK_WITH('신청 거절에 성공하였습니다.');
+    await this.teamService.updateJoinStatus(teamId, updateJoinStatusDto);
+    return ResponseEntity.OK_WITH('신청 상태 변경에 성공하였습니다.');
   }
 
   @ApiOperation({ summary: '참여 신청 취소' })
@@ -151,13 +118,13 @@ export class TeamController {
     description: '참여 신청 취소에 성공하였습니다.',
     type: CancelJoinResponse,
   })
-  @Auth(Role.USER)
-  @Delete(':postId')
+  @Auth()
+  @Delete('')
   async cancelJoinRequest(
-    @Param('postId', postExistPipe) postId: number,
+    @Query('teamId', ParseIntPipe) teamId: number,
     @AccessToken('sub') userId: string,
   ): Promise<ResponseEntity<string>> {
-    await this.teamService.cancelJoinRequest(postId, userId);
+    await this.teamService.cancelJoinRequest(teamId, userId);
     return ResponseEntity.OK_WITH('참여 신청 취소에 성공하였습니다.');
   }
 }
