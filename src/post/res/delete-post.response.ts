@@ -2,7 +2,7 @@ import { ResponseEntity } from '../../common/response/response.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { ResponseStatus } from '../../common/response/response.status';
 
-export class DeletedPostResponse extends ResponseEntity<string> {
+export class DeletePostResponse extends ResponseEntity<string> {
   @ApiProperty({
     example: ResponseStatus.OK,
   })
