@@ -1,13 +1,13 @@
 import * as Joi from 'joi';
 
 export const validationSchema = Joi.object({
-  // Database
+  PORT: Joi.number().required(),
+  // DataBase
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().required(),
   DB_USER: Joi.string().required(),
   DB_PW: Joi.string().required(),
   DB_NAME: Joi.string().required(),
-
   // OAuth
   GOOGLE_CLIENT_ID: Joi.string().required(),
   GOOGLE_CLIENT_SECRET: Joi.string().required(),
