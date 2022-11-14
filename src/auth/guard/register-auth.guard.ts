@@ -4,12 +4,12 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SocialRegisterTokenData } from '../../token/types/token-data';
+import { RegisterTokenData } from '../../token/types/token-data';
 import { validateToken } from '../../token/lib/token';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class SocialRegisterAuthGuard implements CanActivate {
+export class RegisterAuthGuard implements CanActivate {
   constructor(private readonly configService: ConfigService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
@@ -20,7 +20,7 @@ export class SocialRegisterAuthGuard implements CanActivate {
     const REGISTER_TOKEN_SECRET = this.configService.get<string>(
       'REGISTER_TOKEN_SECRET',
     );
-    registerToken = await validateToken<SocialRegisterTokenData>(
+    registerToken = await validateToken<RegisterTokenData>(
       registerToken,
       REGISTER_TOKEN_SECRET,
     );
