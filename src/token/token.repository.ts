@@ -9,7 +9,7 @@ export const authTokenRepository = dataSource.getRepository(AuthToken).extend({
       .where('authToken.disabled = :disabled', { disabled: false })
       .getOneOrFail();
   },
-  async findOneByUserIdOrFail(userId: string): Promise<AuthToken> {
+  async findOneByUserIdOrFail(userId: number): Promise<AuthToken> {
     return authTokenRepository
       .createQueryBuilder('authToken')
       .where('user.id = :id', { id: userId })

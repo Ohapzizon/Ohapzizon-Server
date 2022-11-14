@@ -21,7 +21,7 @@ export const teamRepository = dataSource.getRepository(Team).extend({
 
   async isExistByPostIdAndUserId(
     postId: number,
-    userId: string,
+    userId: number,
   ): Promise<boolean> {
     return isExistQuery(
       teamRepository

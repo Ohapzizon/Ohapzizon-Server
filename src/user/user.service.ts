@@ -4,7 +4,7 @@ import { userRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-  async findOneByIdOrFail(userId: string): Promise<User> {
+  async findOneByIdOrFail(userId: number): Promise<User> {
     return userRepository.findOneByIdOrFail(userId);
   }
 

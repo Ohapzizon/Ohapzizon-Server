@@ -10,7 +10,7 @@ export const userProfileRepository = dataSource
         .where('profile.id = :id', { id: userProfileId })
         .getOneOrFail();
     },
-    async findOneByUserIdOrFail(userId: string): Promise<UserProfile> {
+    async findOneByUserIdOrFail(userId: number): Promise<UserProfile> {
       return userProfileRepository
         .createQueryBuilder('profile')
         .where('user.id = :id', { id: userId })

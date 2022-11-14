@@ -97,7 +97,7 @@ export class AuthController {
   @Auth()
   @Delete('')
   async logOut(
-    @AccessToken('sub') userId: string,
+    @AccessToken('sub') userId: number,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<string>> {
     await this.authService.logOut(userId, res);

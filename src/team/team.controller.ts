@@ -60,7 +60,7 @@ export class TeamController {
   @Post('')
   async join(
     @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
-    @AccessToken('sub') userId: string,
+    @AccessToken('sub') userId: number,
     @Body() createTeamDto: CreateTeamDto,
   ): Promise<ResponseEntity<ShowTeamDto[]>> {
     const data: ShowTeamDto[] = await this.teamService.join(
@@ -122,7 +122,7 @@ export class TeamController {
   @Delete('')
   async cancelJoinRequest(
     @Query('teamId', ParseIntPipe) teamId: number,
-    @AccessToken('sub') userId: string,
+    @AccessToken('sub') userId: number,
   ): Promise<ResponseEntity<string>> {
     await this.teamService.cancelJoinRequest(teamId, userId);
     return ResponseEntity.OK_WITH('참여 신청 취소에 성공하였습니다.');

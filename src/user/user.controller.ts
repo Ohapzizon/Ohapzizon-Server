@@ -43,7 +43,7 @@ export class UserController {
   @Auth()
   @Patch('profile')
   async updateProfile(
-    @AccessToken('sub') userId: string,
+    @AccessToken('sub') userId: number,
     @Body() updateUserDto: UpdateUserProfileDto,
   ) {
     await this.userProfileService.updateProfileByUserId(userId, updateUserDto);
@@ -80,7 +80,7 @@ export class UserController {
   @Auth()
   @Get('post')
   async findMyJoinedPost(
-    @AccessToken('sub') userId: string,
+    @AccessToken('sub') userId: number,
   ): Promise<ResponseEntity<ShowPostDto[]>> {
     const data: ShowPostDto[] = await this.postService.findMyJoinedPost(userId);
     return ResponseEntity.OK_WITH_DATA(

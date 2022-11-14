@@ -3,7 +3,7 @@ import User from '../entities/user.entity';
 import { isExistQuery } from '../common/query/is-exists';
 
 export const userRepository = dataSource.getRepository(User).extend({
-  async findOneByIdOrFail(userId: string): Promise<User> {
+  async findOneByIdOrFail(userId: number): Promise<User> {
     return userRepository
       .createQueryBuilder('user')
       .where('user.id = :id', { id: userId })

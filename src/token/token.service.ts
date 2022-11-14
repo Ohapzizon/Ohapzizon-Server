@@ -87,7 +87,7 @@ export class TokenService {
     return tokenDto;
   }
 
-  async disabledAuthTokenByUserId(userId: string): Promise<void> {
+  async disabledAuthTokenByUserId(userId: number): Promise<void> {
     const authToken: AuthToken = await dataSource
       .createQueryBuilder(AuthToken, 'a')
       .where('u.id = :id', { id: userId })

@@ -10,7 +10,6 @@ import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import User from '../entities/user.entity';
 import UserProfile from '../entities/user-profile.entity';
-import { v4 as uuidv4 } from 'uuid';
 import AuthToken from '../entities/auth-token.entity';
 import { userRepository } from '../user/user.repository';
 import { userProfileRepository } from '../user/user-profile/user-profile.repository';
@@ -35,29 +34,27 @@ export class AuthService {
       );
       if (existedUser) throw new BadRequestException('User Is Already Exists');
       const user: User = userRepository.create({
-        id: uuidv4(),
         email: profile.email,
         name: profile.name,
       });
+      const savedUser = await transactionalEntityManager.save(User, user);
       const userProfile: UserProfile = userProfileRepository.create({
         displayName: registerUserDto.displayName,
         discordTag: registerUserDto.discordTag,
         grade: registerUserDto.grade,
         department: registerUserDto.department,
-        thumbnail: profile.thumbnail,
-        user: { id: user.id },
+        user: { id: savedUser.id },
       });
+      if (profile.thumbnail) userProfile.thumbnail = profile.thumbnail;
       const socialAccount: SocialAccount = socialAccountRepository.create({
         id: profile.socialId,
         provider: provider,
         accessToken: accessToken,
-        user: { id: user.id },
+        user: { id: savedUser.id },
       });
       const authToken = authTokenRepository.create({
-        id: uuidv4(),
-        user: { id: user.id },
+        user: { id: savedUser.id },
       });
-      await transactionalEntityManager.save(User, user);
       await transactionalEntityManager.save(UserProfile, userProfile);
       await transactionalEntityManager.save(SocialAccount, socialAccount);
       await transactionalEntityManager.save(AuthToken, authToken);
@@ -71,7 +68,7 @@ export class AuthService {
     });
   }
 
-  async logOut(userId: string, res: Response): Promise<void> {
+  async logOut(userId: number, res: Response): Promise<void> {
     await this.tokenService.disabledAuthTokenByUserId(userId);
     await this.tokenService.resetTokenCookie(res);
   }

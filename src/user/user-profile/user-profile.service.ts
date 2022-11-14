@@ -10,7 +10,7 @@ export class UserProfileService {
   }
 
   async updateProfileByUserId(
-    userId: string,
+    userId: number,
     updateUserProfileDto: UpdateUserProfileDto,
   ): Promise<void> {
     const profile: UserProfile =

@@ -14,7 +14,7 @@ export class PostService {
     return postRepository.findOneByIdOrFail(postId);
   }
 
-  async findMyJoinedPost(userId: string): Promise<ShowPostDto[]> {
+  async findMyJoinedPost(userId: number): Promise<ShowPostDto[]> {
     return postRepository
       .findShowPost()
       .innerJoin('post.team', 'team')
@@ -57,7 +57,7 @@ export class PostService {
   }
 
   async posting(
-    userId: string,
+    userId: number,
     createPostDto: CreatePostDto,
   ): Promise<ShowPostDto> {
     const post: Post = postRepository.create({

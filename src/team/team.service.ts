@@ -24,7 +24,7 @@ export class TeamService {
 
   async join(
     post: Post,
-    userId: string,
+    userId: number,
     createTeamDto: CreateTeamDto,
   ): Promise<ShowTeamDto[]> {
     if (post.status === PostStatus.CLOSED)
@@ -57,7 +57,7 @@ export class TeamService {
     await teamRepository.save(team);
   }
 
-  async cancelJoinRequest(teamId: number, userId: string): Promise<void> {
+  async cancelJoinRequest(teamId: number, userId: number): Promise<void> {
     const team: Team = await teamRepository.findOneWithUserByIdOrFail(teamId);
     if (team.user.id !== userId)
       throw new ForbiddenException('신청자가 아닙니다.');
