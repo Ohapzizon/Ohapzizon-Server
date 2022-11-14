@@ -39,14 +39,14 @@ export class TokenService {
     authToken: AuthToken,
   ): Promise<TokenDto> {
     const accessToken = this.generateAccessToken({
-      sub: user.id,
+      user_id: user.id,
       name: user.name,
       displayName: userProfile.displayName,
       email: user.email,
       role: user.role,
     });
     const refreshToken = this.generateRefreshToken({
-      sub: authToken.id,
+      token_id: authToken.id,
     });
     return new TokenDto(accessToken, refreshToken);
   }
@@ -60,13 +60,13 @@ export class TokenService {
     let authToken: AuthToken;
     try {
       authToken = await authTokenRepository.findOneByIdOrFail(
-        refreshTokenData.sub,
+        refreshTokenData.token_id,
       );
     } catch (e) {
       throw new UnauthorizedException('Invalid Token');
     }
     const accessToken = this.generateAccessToken({
-      sub: user.id,
+      user_id: user.id,
       name: user.name,
       displayName: userProfile.displayName,
       email: user.email,
@@ -76,7 +76,7 @@ export class TokenService {
     const diff = refreshTokenData.exp * 1000 - now;
     if (diff < 1000 * 60 * 60 * 24 * 23) {
       const refreshToken = this.generateRefreshToken({
-        sub: authToken.id,
+        token_id: authToken.id,
       });
       const tokenDto = new TokenDto(accessToken, refreshToken);
       this.setTokenCookie(res, tokenDto);

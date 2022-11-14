@@ -31,9 +31,8 @@ import { LogoutResponse } from './res/logout.response';
 import { SocialRegisterResponse } from './res/social-register.response';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
 import { Response } from 'express';
-import { SocialRegisterAuth } from '../common/decorators/social-register-auth.decorator';
+import { RegisterAuth } from '../common/decorators/register-auth.decorator';
 import { ProfileResponse } from './res/profile.response';
-import { SocialRegisterAuthGuard } from './guard/social-register-auth.guard';
 import { SocialProfileDto } from './dto/social-profile.dto';
 
 @ApiInternalServerErrorResponse({
@@ -53,8 +52,7 @@ export class AuthController {
   @ApiNotFoundResponse({
     description: '요청 값을 찾을 수 없습니다.',
   })
-  @ApiHeader({ name: 'register_token' })
-  @UseGuards(SocialRegisterAuthGuard)
+  @RegisterAuth()
   @Get('profile')
   async getSocialProfile(
     @RegisterToken('profile') profile: SocialProfileDto,
@@ -70,7 +68,7 @@ export class AuthController {
     description: '소셜 계정 등록에 성공하였습니다.',
     type: SocialRegisterResponse,
   })
-  @SocialRegisterAuth()
+  @RegisterAuth()
   @HttpCode(201)
   @Post('')
   async socialRegister(
@@ -97,7 +95,7 @@ export class AuthController {
   @Auth()
   @Delete('')
   async logOut(
-    @AccessToken('sub') userId: number,
+    @AccessToken('user_id') userId: number,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<string>> {
     await this.authService.logOut(userId, res);

@@ -37,7 +37,7 @@ export class TokenController {
   @RefreshAuth()
   @Get()
   async refreshToken(
-    @AccessToken('sub', userByIdPipe) currentUser: User,
+    @AccessToken('user_id', userByIdPipe) currentUser: User,
     @RefreshToken() refreshTokenData: RefreshTokenData,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<TokenDto>> {

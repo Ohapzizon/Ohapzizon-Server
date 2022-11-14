@@ -21,7 +21,7 @@ export class WriterGuard implements CanActivate {
     if (teamId)
       writer = await this.postService.findWriterByTeamIdOrFail(teamId);
 
-    if (writer.id !== accessToken.sub)
+    if (writer.id !== accessToken.user_id)
       throw new ForbiddenException('작성자가 아닙니다.');
     return true;
   }

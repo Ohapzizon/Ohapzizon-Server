@@ -63,7 +63,7 @@ export class PostController {
   @HttpCode(201)
   @Post('')
   async posting(
-    @AccessToken('sub') userId: number,
+    @AccessToken('user_id') userId: number,
     @Body() createPostDto: CreatePostDto,
   ): Promise<ResponseEntity<ShowPostDto>> {
     const data: ShowPostDto = await this.postService.posting(
