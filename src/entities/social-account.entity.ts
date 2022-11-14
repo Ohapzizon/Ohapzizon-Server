@@ -4,18 +4,15 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import User from './user.entity';
 
 @Entity('social_account')
 export default class SocialAccount {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  socialId: string;
+  @PrimaryColumn()
+  id: string;
 
   @Column()
   accessToken: string;

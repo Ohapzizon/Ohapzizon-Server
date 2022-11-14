@@ -44,13 +44,13 @@ export class GoogleAuthService {
     const accessToken: string = await this.getGoogleAccessToken(code);
     const profile: SocialProfile = await this.getGoogleProfile(accessToken);
     const existSocialAccount: boolean =
-      await socialAccountRepository.isExistBySocialIdAndProvider(
+      await socialAccountRepository.isExistByIdAndProvider(
         profile.socialId,
         'google',
       );
     if (existSocialAccount) {
       const socialAccount: SocialAccount =
-        await socialAccountRepository.findOneBySocialIdOrFail(profile.socialId);
+        await socialAccountRepository.findOneByIdOrFail(profile.socialId);
       const authToken: AuthToken =
         await authTokenRepository.findOneByUserIdOrFail(socialAccount.user.id);
       const tokenDto: TokenDto = await this.tokenService.generateUserToken(
