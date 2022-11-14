@@ -1,18 +1,12 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from '../user/enum/role';
 import UserProfile from './user-profile.entity';
+import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('user')
-export default class User {
-  @PrimaryColumn('uuid')
-  id: string;
+export default class User extends BaseTimeEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ unique: true })
   email: string;
@@ -26,12 +20,6 @@ export default class User {
     default: Role.USER,
   })
   role: Role;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @OneToOne(() => UserProfile, (profile) => profile.user, {
     nullable: false,

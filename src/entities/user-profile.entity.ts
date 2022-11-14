@@ -1,18 +1,17 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import User from './user.entity';
 import { Grade } from '../user/user-profile/enum/grade';
 import { Department } from '../user/user-profile/enum/department';
+import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('user_profile')
-export default class UserProfile {
+export default class UserProfile extends BaseTimeEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,12 +29,6 @@ export default class UserProfile {
 
   @Column({ type: 'enum', enum: Department, default: Department.NONE })
   department: Department;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @OneToOne(() => User, (user) => user.profile, {
     onDelete: 'CASCADE',

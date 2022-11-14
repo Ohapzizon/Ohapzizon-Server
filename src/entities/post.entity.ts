@@ -1,20 +1,19 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import User from './user.entity';
 import { TargetGrade } from '../post/enum/target-grade';
 import { LocalDateTime } from '@js-joda/core';
 import { LocalDateTimeTransformer } from '../common/transformer/local-date-time.transformer';
 import { PostStatus } from '../post/enum/post-status';
+import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('post')
-export default class Post {
+export default class Post extends BaseTimeEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -45,12 +44,6 @@ export default class Post {
     transformer: new LocalDateTimeTransformer(),
   })
   reserveDateTime: LocalDateTime;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',

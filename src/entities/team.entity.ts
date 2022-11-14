@@ -1,18 +1,17 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import Post from './post.entity';
 import User from './user.entity';
 import { JoinStatus } from '../team/enum/join-status';
+import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('team')
-export default class Team {
+export default class Team extends BaseTimeEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,12 +24,6 @@ export default class Team {
     default: JoinStatus.WAIT,
   })
   status: JoinStatus;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',

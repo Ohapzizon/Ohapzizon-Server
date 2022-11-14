@@ -1,16 +1,9 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import User from './user.entity';
+import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('social_account')
-export default class SocialAccount {
+export default class SocialAccount extends BaseTimeEntity {
   @PrimaryColumn()
   id: string;
 
@@ -19,12 +12,6 @@ export default class SocialAccount {
 
   @Column()
   provider: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @OneToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
