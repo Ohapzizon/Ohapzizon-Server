@@ -13,8 +13,9 @@ import UserProfile from '../entities/user-profile.entity';
 import AuthToken from '../entities/auth-token.entity';
 import { userRepository } from '../user/user.repository';
 import { userProfileRepository } from '../user/user-profile/user-profile.repository';
-import { socialAccountRepository } from './social/social-account.repository';
+import { socialAccountRepository } from './social-account.repository';
 import { authTokenRepository } from '../token/token.repository';
+import { SocialProfile } from './types/social-profile';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
     registerUserDto: RegisterUserProfileDto,
     res: Response,
   ): Promise<LoginDto> {
-    return await dataSource.transaction(async (transactionalEntityManager) => {
+    return dataSource.transaction(async (transactionalEntityManager) => {
       const existedUser: boolean = await this.userService.isExistByEmail(
         profile.email,
       );
@@ -66,6 +67,42 @@ export class AuthService {
       this.tokenService.setTokenCookie(res, tokenDto);
       return new LoginDto(userProfile, tokenDto);
     });
+  }
+
+  async socialLogin(
+    profile: SocialProfile,
+    accessToken: string,
+    provider: string,
+    res: Response,
+  ) {
+    const existSocialAccount: boolean =
+      await socialAccountRepository.isExistByIdAndProvider(
+        profile.socialId,
+        provider,
+      );
+    if (existSocialAccount) {
+      const socialAccount: SocialAccount =
+        await socialAccountRepository.findOneByIdOrFail(profile.socialId);
+      const authToken: AuthToken =
+        await authTokenRepository.findOneByUserIdOrFail(socialAccount.user.id);
+      const tokenDto: TokenDto = await this.tokenService.generateUserToken(
+        socialAccount.user,
+        socialAccount.user.profile,
+        authToken,
+      );
+      this.tokenService.setTokenCookie(res, tokenDto);
+      return new LoginDto(socialAccount.user.profile, tokenDto);
+    }
+    const registerToken = this.tokenService.generateRegisterToken({
+      profile: profile,
+      accessToken: accessToken,
+      provider: 'google',
+    });
+    res.cookie('registerToken', registerToken, {
+      maxAge: 1000 * 60 * 60 * 24,
+      httpOnly: true,
+    });
+    return { registerToken: registerToken };
   }
 
   async logOut(userId: number, res: Response): Promise<void> {
