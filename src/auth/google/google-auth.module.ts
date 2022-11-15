@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { GoogleAuthController } from './google-auth.controller';
 import { GoogleAuthService } from './google-auth.service';
-import { TokenService } from '../../../token/token.service';
+import { AuthModule } from '../auth.module';
 
 @Module({
+  imports: [forwardRef(() => AuthModule)],
   controllers: [GoogleAuthController],
-  providers: [GoogleAuthService, TokenService],
+  providers: [GoogleAuthService],
 })
 export class GoogleAuthModule {}
