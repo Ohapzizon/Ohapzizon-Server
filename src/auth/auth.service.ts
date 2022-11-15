@@ -16,6 +16,7 @@ import { userProfileRepository } from '../user/user-profile/user-profile.reposit
 import { socialAccountRepository } from './social-account.repository';
 import { authTokenRepository } from '../token/token.repository';
 import { SocialProfile } from './types/social-profile';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -54,6 +55,7 @@ export class AuthService {
         user: { id: savedUser.id },
       });
       const authToken = authTokenRepository.create({
+        id: uuid(),
         user: { id: savedUser.id },
       });
       await transactionalEntityManager.save(UserProfile, userProfile);
