@@ -49,10 +49,10 @@ export class AuthService {
       });
       if (profile.thumbnail) userProfile.thumbnail = profile.thumbnail;
       const socialAccount: SocialAccount = socialAccountRepository.create({
-        id: profile.socialId,
+        socialId: profile.socialId,
         provider: provider,
         accessToken: accessToken,
-        user: { id: savedUser.id },
+        userId: savedUser.id,
       });
       const authToken = authTokenRepository.create({
         id: uuid(),
