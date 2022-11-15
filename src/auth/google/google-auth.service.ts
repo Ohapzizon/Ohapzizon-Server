@@ -2,20 +2,15 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GoogleUserInfo } from './types/google-user.types';
 import { SocialProfile } from '../types/social-profile';
 import { ConfigService } from '@nestjs/config';
-import { TokenService } from '../../../token/token.service';
-import SocialAccount from '../../../entities/social-account.entity';
-import { LoginDto } from '../../dto/login.dto';
-import { TokenDto } from '../../../token/dto/token.dto';
-import { socialAccountRepository } from '../social-account.repository';
+import { LoginDto } from '../dto/login.dto';
 import { Response } from 'express';
 import axios from 'axios';
-import { authTokenRepository } from '../../../token/token.repository';
-import AuthToken from '../../../entities/auth-token.entity';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class GoogleAuthService {
   constructor(
-    private readonly tokenService: TokenService,
+    private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -43,34 +38,7 @@ export class GoogleAuthService {
   ): Promise<LoginDto | { registerToken: string }> {
     const accessToken: string = await this.getGoogleAccessToken(code);
     const profile: SocialProfile = await this.getGoogleProfile(accessToken);
-    const existSocialAccount: boolean =
-      await socialAccountRepository.isExistByIdAndProvider(
-        profile.socialId,
-        'google',
-      );
-    if (existSocialAccount) {
-      const socialAccount: SocialAccount =
-        await socialAccountRepository.findOneByIdOrFail(profile.socialId);
-      const authToken: AuthToken =
-        await authTokenRepository.findOneByUserIdOrFail(socialAccount.user.id);
-      const tokenDto: TokenDto = await this.tokenService.generateUserToken(
-        socialAccount.user,
-        socialAccount.user.profile,
-        authToken,
-      );
-      this.tokenService.setTokenCookie(res, tokenDto);
-      return new LoginDto(socialAccount.user.profile, tokenDto);
-    }
-    const registerToken = this.tokenService.generateRegisterToken({
-      profile: profile,
-      accessToken: accessToken,
-      provider: 'google',
-    });
-    res.cookie('registerToken', registerToken, {
-      maxAge: 1000 * 60 * 60 * 24,
-      httpOnly: true,
-    });
-    return { registerToken: registerToken };
+    return this.authService.socialLogin(profile, accessToken, 'google', res);
   }
 
   private async getGoogleAccessToken(code: string): Promise<string> {
