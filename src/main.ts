@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { setSwaggerDocs } from './config/swagger/swagger';
 import { setNestApp } from './config/app/set-nest.app';
 import { ConfigService } from '@nestjs/config';
+import dataSource from './config/database/data-source';
 
 declare const module: any;
 
@@ -19,7 +20,10 @@ async function bootstrap() {
     );
   if (module.hot) {
     module.hot.accept();
-    module.hot.dispose(() => app.close());
+    module.hot.dispose(() => {
+      app.close();
+      dataSource.destroy();
+    });
   }
 }
 bootstrap();

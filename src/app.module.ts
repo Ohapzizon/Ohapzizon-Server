@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { TokenModule } from './token/token.module';
 import { validationSchema } from './config/validation-schema';
+import { connectionFactory } from './config/database/connection.factory';
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import { validationSchema } from './config/validation-schema';
     TeamModule,
     TokenModule,
   ],
-  providers: [Logger],
+  providers: [Logger, connectionFactory],
 })
 export class AppModule {}
