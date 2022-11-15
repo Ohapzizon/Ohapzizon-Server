@@ -15,7 +15,6 @@ export const userRepository = dataSource.getRepository(User).extend({
     return isExistQuery(
       userRepository
         .createQueryBuilder('user')
-        .select('*')
         .where('user.email = ?')
         .getQuery(),
       [`${email}`],
