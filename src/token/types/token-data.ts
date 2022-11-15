@@ -1,5 +1,5 @@
 import { Role } from '../../user/enum/role';
-import { SocialProfile } from '../../auth/social/types/social-profile';
+import { SocialProfile } from '../../auth/types/social-profile';
 
 export type TokenData = {
   iss: string;

@@ -6,10 +6,10 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ResponseEntity } from '../../../common/response/response.entity';
-import { LoginDto } from '../../dto/login.dto';
-import { LoginResponse } from '../../res/login.response';
-import { InternalServerError } from '../../../common/response/swagger/error/internal-server.error';
+import { ResponseEntity } from '../../common/response/response.entity';
+import { LoginDto } from '../dto/login.dto';
+import { LoginResponse } from '../res/login.response';
+import { InternalServerError } from '../../common/response/swagger/error/internal-server.error';
 import { Response } from 'express';
 
 @ApiInternalServerErrorResponse({
