@@ -5,8 +5,8 @@ import UserProfile from '../../entities/user-profile.entity';
 
 @Injectable()
 export class UserProfileService {
-  async findOneByIdOrFail(userProfileId: string): Promise<UserProfile> {
-    return userProfileRepository.findOneByIdOrFail(userProfileId);
+  async findOneByIdOrFail(userId: number): Promise<UserProfile> {
+    return userProfileRepository.findOneByIdOrFail(userId);
   }
 
   async updateProfileByUserId(

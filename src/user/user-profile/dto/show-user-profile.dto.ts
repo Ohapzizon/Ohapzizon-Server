@@ -5,7 +5,7 @@ import { Exclude, Expose } from 'class-transformer';
 import UserProfile from '../../../entities/user-profile.entity';
 
 export class ShowUserProfileDto {
-  @ApiHideProperty() @Exclude() private readonly _userProfileId: number;
+  @ApiHideProperty() @Exclude() private readonly _userId: number;
   @ApiHideProperty() @Exclude() private readonly _displayName: string;
   @ApiHideProperty() @Exclude() private readonly _discordTag?: string;
   @ApiHideProperty() @Exclude() private readonly _thumbnail?: string | null;
@@ -13,7 +13,7 @@ export class ShowUserProfileDto {
   @ApiHideProperty() @Exclude() private readonly _department: Department;
 
   constructor(userProfile: UserProfile) {
-    this._userProfileId = userProfile.id;
+    this._userId = userProfile.userId;
     this._displayName = userProfile.displayName;
     this._discordTag = userProfile.discordTag;
     this._thumbnail = userProfile.thumbnail;
@@ -22,12 +22,12 @@ export class ShowUserProfileDto {
   }
 
   @ApiProperty({
-    name: 'userProfileId',
+    name: 'userId',
     example: 1,
   })
   @Expose()
-  get userProfileId(): number {
-    return this._userProfileId;
+  get userId(): number {
+    return this._userId;
   }
 
   @ApiProperty({

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { TokenService } from '../token/token.service';
 import { SocialRegisterTokenData } from '../token/types/token-data';
 import { RegisterUserProfileDto } from './dto/register-user-profile.dto';
@@ -34,7 +34,8 @@ export class AuthService {
       const existedUser: boolean = await this.userService.isExistByEmail(
         profile.email,
       );
-      if (existedUser) throw new BadRequestException('User Is Already Exists');
+      if (existedUser)
+        throw new UnprocessableEntityException('User Is Already Exists');
       const user: User = userRepository.create({
         email: profile.email,
         name: profile.name,
@@ -49,10 +50,10 @@ export class AuthService {
       });
       if (profile.thumbnail) userProfile.thumbnail = profile.thumbnail;
       const socialAccount: SocialAccount = socialAccountRepository.create({
-        id: profile.socialId,
+        socialId: profile.socialId,
         provider: provider,
         accessToken: accessToken,
-        user: { id: savedUser.id },
+        userId: savedUser.id,
       });
       const authToken = authTokenRepository.create({
         id: uuid(),

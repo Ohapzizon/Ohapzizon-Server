@@ -59,14 +59,14 @@ export class UserController {
     description: '요청하신 자료를 찾을 수 없습니다.',
     type: NotFoundError,
   })
-  @Get('profile/:userProfileId')
+  @Get('profile/:userId')
   async findUserProfile(
-    @Param('userProfileId') userProfileId: string,
+    @Param('userId') userId: number,
   ): Promise<ResponseEntity<UserProfile>> {
-    const data: UserProfile = await this.userProfileService.findOneByIdOrFail(
-      userProfileId,
+    return ResponseEntity.OK_WITH_DATA(
+      '프로필 조회에 성공하였습니다.',
+      await this.userProfileService.findOneByIdOrFail(userId),
     );
-    return ResponseEntity.OK_WITH_DATA('프로필 조회에 성공하였습니다.', data);
   }
 
   @ApiOperation({
@@ -82,10 +82,9 @@ export class UserController {
   async findMyJoinedPost(
     @AccessToken('user_id') userId: number,
   ): Promise<ResponseEntity<ShowPostDto[]>> {
-    const data: ShowPostDto[] = await this.postService.findMyJoinedPost(userId);
     return ResponseEntity.OK_WITH_DATA(
       '참여한 모집글 조회에 성공하였습니다.',
-      data,
+      await this.postService.findMyJoinedPost(userId),
     );
   }
 }

@@ -4,10 +4,10 @@ import UserProfile from '../../entities/user-profile.entity';
 export const userProfileRepository = dataSource
   .getRepository(UserProfile)
   .extend({
-    async findOneByIdOrFail(userProfileId: string): Promise<UserProfile> {
+    async findOneByIdOrFail(userId: number): Promise<UserProfile> {
       return userProfileRepository
         .createQueryBuilder('profile')
-        .where('profile.id = :id', { id: userProfileId })
+        .where('profile.user_id = :id', { id: userId })
         .getOneOrFail();
     },
     async findOneByUserIdOrFail(userId: number): Promise<UserProfile> {
