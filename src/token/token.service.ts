@@ -1,18 +1,19 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenData } from './types/token-data';
 import User from '../entities/user.entity';
 import AuthToken from '../entities/auth-token.entity';
 import { TokenDto } from './dto/token.dto';
-import dataSource from '../config/database/data-source';
-import { Response } from 'express';
-import { authTokenRepository } from './token.repository';
-import UserProfile from '../entities/user-profile.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    @Inject('AUTH_TOKEN_REPOSITORY')
+    private readonly authTokenRepository: Repository<AuthToken>,
+    private readonly configService: ConfigService,
+  ) {}
 
   private ACCESS_TOKEN_SECRET = this.configService.get<string>(
     'ACCESS_TOKEN_SECRET',
@@ -33,17 +34,16 @@ export class TokenService {
     'REGISTER_TOKEN_EXPIRATION_TIME',
   );
 
-  async generateUserToken(
-    user: User,
-    userProfile: UserProfile,
-    authToken: AuthToken,
-  ): Promise<TokenDto> {
+  async generateUserToken(user: User): Promise<TokenDto> {
     const accessToken = this.generateAccessToken({
       user_id: user.id,
       name: user.name,
-      displayName: userProfile.displayName,
+      displayName: user.profile.displayName,
       email: user.email,
       role: user.role,
+    });
+    const authToken = await this.authTokenRepository.findOneByOrFail({
+      userId: user.id,
     });
     const refreshToken = this.generateRefreshToken({
       token_id: authToken.id,
@@ -53,22 +53,20 @@ export class TokenService {
 
   async refreshUserToken(
     user: User,
-    userProfile: UserProfile,
     refreshTokenData: RefreshTokenData,
-    res: Response,
   ): Promise<TokenDto> {
     let authToken: AuthToken;
     try {
-      authToken = await authTokenRepository.findOneByIdOrFail(
-        refreshTokenData.token_id,
-      );
+      authToken = await this.authTokenRepository.findOneByOrFail({
+        id: refreshTokenData.token_id,
+      });
     } catch (e) {
       throw new UnauthorizedException('Invalid Token');
     }
     const accessToken = this.generateAccessToken({
       user_id: user.id,
       name: user.name,
-      displayName: userProfile.displayName,
+      displayName: user.profile.displayName,
       email: user.email,
       role: user.role,
     });
@@ -78,23 +76,19 @@ export class TokenService {
       const refreshToken = this.generateRefreshToken({
         token_id: authToken.id,
       });
-      const tokenDto = new TokenDto(accessToken, refreshToken);
-      this.setTokenCookie(res, tokenDto);
-      return tokenDto;
+      return new TokenDto(accessToken, refreshToken);
     }
-    const tokenDto = new TokenDto(accessToken);
-    this.setTokenCookie(res, tokenDto);
-    return tokenDto;
+    return new TokenDto(accessToken);
   }
 
   async disabledAuthTokenByUserId(userId: number): Promise<void> {
-    const authToken: AuthToken = await dataSource
-      .createQueryBuilder(AuthToken, 'a')
+    const authToken: AuthToken = await this.authTokenRepository
+      .createQueryBuilder('a')
       .where('u.id = :id', { id: userId })
       .innerJoin('a.user', 'u')
       .getOneOrFail();
     authToken.disabled = true;
-    await dataSource.manager.save(AuthToken, authToken);
+    await this.authTokenRepository.save(authToken);
   }
 
   generateRegisterToken(payload: any): string {
@@ -119,21 +113,5 @@ export class TokenService {
       algorithm: 'HS256',
       expiresIn: this.REFRESH_TOKEN_EXPIRATION + 'ms',
     });
-  }
-
-  setTokenCookie(res: Response, { accessToken, refreshToken }: TokenDto): void {
-    res.cookie('accessToken', accessToken, {
-      maxAge: this.ACCESS_TOKEN_EXPIRATION,
-      httpOnly: true,
-    });
-    res.cookie('refreshToken', refreshToken, {
-      maxAge: this.REFRESH_TOKEN_EXPIRATION,
-      httpOnly: true,
-    });
-  }
-
-  resetTokenCookie(res: Response): void {
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
   }
 }

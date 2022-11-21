@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ValidationError } from 'class-validator';
 import { Constraint } from './constraint';
-import { HttpException } from '@nestjs/common';
 
 export class CustomValidationError {
   @ApiProperty()

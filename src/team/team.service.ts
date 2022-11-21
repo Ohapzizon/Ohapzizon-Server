@@ -1,66 +1,85 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import Team from '../entities/team.entity';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { ShowTeamDto } from './dto/show-team.dto';
-import { teamRepository } from './team.repository';
 import Post from '../entities/post.entity';
-import { PostStatus } from '../post/enum/post-status';
-import { postRepository } from '../post/post.repository';
 import { UpdateJoinStatusDto } from './dto/update-join-status.dto';
+import { Repository } from 'typeorm';
+import User from '../entities/user.entity';
 
 @Injectable()
 export class TeamService {
-  async findShowTeamDtoByPostId(postId: number): Promise<ShowTeamDto[]> {
-    return teamRepository
-      .findShowTeam()
-      .where('post.id = :id', { id: postId })
-      .innerJoin('t.post', 'post')
-      .getRawMany<ShowTeamDto>();
-  }
+  constructor(
+    @Inject('TEAM_REPOSITORY')
+    private readonly teamRepository: Repository<Team>,
+  ) {}
 
   async join(
     post: Post,
     userId: number,
     createTeamDto: CreateTeamDto,
   ): Promise<ShowTeamDto[]> {
-    if (post.status === PostStatus.CLOSED)
-      throw new BadRequestException('참가 모집이 마감된 글입니다.');
-    const existTeam: boolean = await teamRepository.isExistByPostIdAndUserId(
-      post.id,
-      userId,
-    );
-    if (existTeam) throw new BadRequestException('이미 참가한 사용자입니다.');
-    const team: Team = teamRepository.create({
-      bio: createTeamDto.bio,
-      post: { id: post.id },
-      user: { id: userId },
+    const existTeam: Team | null = await this.teamRepository.findOneBy({
+      postId: post.id,
+      userId: userId,
     });
-    await teamRepository.save(team);
-    const count = await teamRepository.countBy({ post: { id: post.id } });
-    if (post.limit <= count) {
-      post.status = PostStatus.CLOSED;
-      await postRepository.save(post);
-    }
+    if (existTeam) throw new BadRequestException('이미 참가한 사용자입니다.');
+    const team: Team = this.teamRepository.create({
+      bio: createTeamDto.bio,
+      postId: post.id,
+      userId: userId,
+    });
+    await this.teamRepository.save(team);
     return this.findShowTeamDtoByPostId(post.id);
+  }
+
+  async findOneByIdOrFail(teamId: number) {
+    return this.teamRepository.findOneByOrFail({ id: teamId });
+  }
+
+  async findShowTeamDtoByPostId(postId: number): Promise<ShowTeamDto[]> {
+    const team = await this.teamRepository.find({
+      where: { postId: postId },
+      select: {
+        id: true,
+        status: true,
+        bio: true,
+        user: { profile: { displayName: true } },
+      },
+      relations: { user: { profile: true } },
+      loadRelationIds: false,
+      relationLoadStrategy: 'query',
+    });
+    return team.map((team) => new ShowTeamDto(team));
+  }
+
+  async findWriterIdByIdFail(teamId: number): Promise<User> {
+    const {
+      post: { writer },
+    }: Team = await this.teamRepository.findOneOrFail({
+      select: {
+        post: {
+          writerId: true,
+        },
+      },
+      where: { id: teamId },
+      relations: { post: true },
+      loadRelationIds: false,
+    });
+    return writer;
   }
 
   async updateJoinStatus(
     teamId: number,
     updateJoinStatusDto: UpdateJoinStatusDto,
   ): Promise<void> {
-    const team: Team = await teamRepository.findOneByIdOrFail(teamId);
-    team.status = updateJoinStatusDto.joinStatus;
-    await teamRepository.save(team);
+    await this.teamRepository.update(
+      { id: teamId },
+      { status: updateJoinStatusDto.joinStatus },
+    );
   }
 
-  async cancelJoinRequest(teamId: number, userId: number): Promise<void> {
-    const team: Team = await teamRepository.findOneWithUserByIdOrFail(teamId);
-    if (team.user.id !== userId)
-      throw new ForbiddenException('신청자가 아닙니다.');
-    await teamRepository.delete({ id: team.id });
+  async cancelJoinRequest(teamId: number): Promise<void> {
+    await this.teamRepository.delete({ id: teamId });
   }
 }

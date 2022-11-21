@@ -6,9 +6,6 @@ import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('user_profile')
 export default class UserProfile extends BaseTimeEntity {
-  @PrimaryColumn()
-  userId: number;
-
   @Column({ length: 255 })
   displayName: string;
 
@@ -23,6 +20,9 @@ export default class UserProfile extends BaseTimeEntity {
 
   @Column({ type: 'enum', enum: Department, default: Department.NONE })
   department: Department;
+
+  @PrimaryColumn()
+  userId: number;
 
   @OneToOne(() => User, (user) => user.profile, {
     onDelete: 'CASCADE',

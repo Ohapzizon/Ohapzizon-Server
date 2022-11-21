@@ -5,6 +5,8 @@ import { GROUP_ALL_POSTS, GROUP_POST } from '../enum/group-post';
 import { LocalDateTime } from '@js-joda/core';
 import { DateTimeUtil } from '../../common/utils/date-time.util';
 import { PostStatus } from '../enum/post-status';
+import Post from '../../entities/post.entity';
+import User from '../../entities/user.entity';
 
 @Expose({ groups: [GROUP_POST, GROUP_ALL_POSTS] })
 export class ShowPostDto {
@@ -38,15 +40,28 @@ export class ShowPostDto {
 
   @ApiHideProperty()
   @Exclude()
-  private readonly _createdAt: Date;
+  private readonly _createdAt: LocalDateTime;
 
   @ApiHideProperty()
   @Exclude()
-  private readonly _updatedAt: Date;
+  private readonly _updatedAt: LocalDateTime;
 
   @ApiHideProperty()
   @Exclude()
   private readonly _writer: string;
+
+  constructor(post: Post) {
+    this._postId = post.id;
+    this._title = post.title;
+    this._contents = post.contents;
+    this._limit = post.limit;
+    this._status = post.status;
+    this._targetGrade = post.targetGrade;
+    this._reserveDateTime = post.reserveDateTime;
+    this._createdAt = post.createdAt;
+    this._updatedAt = post.updatedAt;
+    this._writer = post.writer.profile.displayName;
+  }
 
   @ApiProperty({
     name: 'postId',
@@ -124,7 +139,7 @@ export class ShowPostDto {
   })
   @Expose()
   get createdAt(): LocalDateTime {
-    return DateTimeUtil.toLocalDateTime(this._createdAt);
+    return this._createdAt;
   }
 
   @ApiProperty({
@@ -134,7 +149,7 @@ export class ShowPostDto {
   })
   @Expose()
   get updatedAtAt(): LocalDateTime {
-    return DateTimeUtil.toLocalDateTime(this._updatedAt);
+    return this._updatedAt;
   }
 
   @ApiProperty({

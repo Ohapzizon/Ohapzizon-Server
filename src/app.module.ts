@@ -6,7 +6,8 @@ import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { TokenModule } from './token/token.module';
 import { validationSchema } from './config/validation-schema';
-import { connectionFactory } from './config/database/connection.factory';
+import { HealthCheckModule } from './health-check/health-check.module';
+import { DatabaseModule } from './config/database/database.module';
 
 @Module({
   imports: [
@@ -19,12 +20,14 @@ import { connectionFactory } from './config/database/connection.factory';
           ? '.production.env'
           : '.development.env',
     }),
+    DatabaseModule,
     AuthModule,
     UserModule,
     PostModule,
     TeamModule,
     TokenModule,
+    HealthCheckModule,
   ],
-  providers: [Logger, connectionFactory],
+  providers: [Logger],
 })
 export class AppModule {}

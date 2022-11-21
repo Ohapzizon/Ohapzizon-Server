@@ -1,23 +1,18 @@
-import dataSource from '../config/database/data-source';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import User from '../entities/user.entity';
-import { isExistQuery } from '../common/query/is-exists';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-export const userRepository = dataSource.getRepository(User).extend({
-  async findOneByIdOrFail(userId: number): Promise<User> {
-    return userRepository
-      .createQueryBuilder('user')
-      .where('user.id = :id', { id: userId })
-      .innerJoinAndSelect('user.profile', 'profile')
-      .getOneOrFail();
-  },
+@Injectable()
+export class UserRepository extends Repository<User> {
+  constructor(@Inject('DATA_SOURCE') private readonly dataSource: DataSource) {
+    super(User, dataSource.manager);
+  }
 
-  async isExistByEmail(email: string): Promise<boolean> {
-    return isExistQuery(
-      userRepository
-        .createQueryBuilder('user')
-        .where('user.email = ?')
-        .getQuery(),
-      [`${email}`],
-    );
-  },
-});
+  findOneByOrFail(
+    where: FindOptionsWhere<User> | FindOptionsWhere<User>[],
+  ): Promise<User> {
+    const object = super.findOneBy(where);
+    if (!object) throw new NotFoundException('User Not Found');
+    return object;
+  }
+}

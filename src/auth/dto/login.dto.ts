@@ -1,17 +1,17 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { TokenDto } from '../../token/dto/token.dto';
-import UserProfile from '../../entities/user-profile.entity';
 import { ShowUserProfileDto } from '../../user/user-profile/dto/show-user-profile.dto';
+import User from '../../entities/user.entity';
+import { TokenDto } from '../../token/dto/token.dto';
 
 export class LoginDto extends ShowUserProfileDto {
   @ApiHideProperty() @Exclude() private readonly _accessToken: string;
   @ApiHideProperty() @Exclude() private readonly _refreshToken: string;
 
-  constructor(userProfile: UserProfile, tokenDto: TokenDto) {
-    super(userProfile);
-    this._accessToken = tokenDto.accessToken;
-    this._refreshToken = tokenDto.refreshToken;
+  constructor(user: User, { accessToken, refreshToken }: TokenDto) {
+    super(user.profile);
+    this._accessToken = accessToken;
+    this._refreshToken = refreshToken;
   }
 
   @ApiProperty({

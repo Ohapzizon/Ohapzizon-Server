@@ -23,10 +23,13 @@ export default class AuthToken {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @PrimaryColumn({ name: 'user_id' })
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
     nullable: false,
   })
-  @JoinColumn({ name: 'fk_user_id' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

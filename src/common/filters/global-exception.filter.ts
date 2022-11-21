@@ -57,6 +57,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       responseBody,
     };
     this.logger.error(log);
+    this.logger.error(responseBody['statusCode']);
 
     await this.httpAdapter.reply(
       ctx.getResponse(),

@@ -1,12 +1,20 @@
 import { JoinStatus } from '../enum/join-status';
 import { Exclude, Expose } from 'class-transformer';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import Team from '../../entities/team.entity';
 
 export class ShowTeamDto {
   @ApiHideProperty() @Exclude() private readonly _id: number;
   @ApiHideProperty() @Exclude() private readonly _participants: string;
   @ApiHideProperty() @Exclude() private readonly _status: JoinStatus;
   @ApiHideProperty() @Exclude() private readonly _bio: string;
+
+  constructor(private readonly team: Team) {
+    this._id = team.id;
+    this._participants = team.user.profile.displayName;
+    this._status = team.status;
+    this._bio = team.bio;
+  }
 
   @ApiProperty({
     name: 'teamId',

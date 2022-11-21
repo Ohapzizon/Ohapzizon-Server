@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import User from '../entities/user.entity';
-import { userRepository } from './user.repository';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
+  constructor(@Inject() private userRepository: UserRepository) {}
   async findOneByIdOrFail(userId: number): Promise<User> {
-    return userRepository.findOneByIdOrFail(userId);
+    return this.userRepository.findOneByOrFail({ id: userId });
   }
 
-  async isExistByEmail(email: string): Promise<boolean> {
-    return userRepository.isExistByEmail(email);
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOneBy({ email: email });
   }
 }
