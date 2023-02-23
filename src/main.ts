@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { setSwaggerDocs } from './config/swagger/swagger';
 import { setNestApp } from './config/app/set-nest.app';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 
 declare const module: any;
 
@@ -15,7 +16,9 @@ async function bootstrap() {
   await app
     .listen(port)
     .then(async () =>
-      console.log(`Application is running on: ${await app.getUrl()}`),
+      app
+        .get(Logger)
+        .log(`Application is running on: ${await app.getUrl()}`, 'Ohapzizon'),
     );
   if (module.hot) {
     module.hot.accept();

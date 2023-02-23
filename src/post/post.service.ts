@@ -4,13 +4,13 @@ import Post from '../entities/post.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ShowPostDto } from './dto/show-post.dto';
 import { PostStatus } from './enum/post-status';
-import User from '../entities/user.entity';
 import { Repository } from 'typeorm';
+import { POST_REPOSITORY } from '../common/constants';
 
 @Injectable()
 export class PostService {
   constructor(
-    @Inject('POST_REPOSITORY')
+    @Inject(POST_REPOSITORY)
     private readonly postRepository: Repository<Post>,
   ) {}
 
@@ -37,50 +37,55 @@ export class PostService {
     });
   }
 
+  async findPostStatusByIdOrFail(postId: number): Promise<PostStatus> {
+    const { status }: Post = await this.postRepository.findOneOrFail({
+      select: { status: true },
+      where: { id: postId },
+      cache: true,
+    });
+    return status;
+  }
+
+  async findWriterIdByIdOrFail(postId: number): Promise<number> {
+    const { writerId }: Post = await this.postRepository.findOneOrFail({
+      select: { writerId: true },
+      where: { id: postId },
+    });
+    return writerId;
+  }
+
   async findShowPostDtoByIdOrFail(postId: number): Promise<ShowPostDto> {
     const post: Post = await this.postRepository.findOneOrFail({
       relations: {
-        writer: {
-          profile: {
-            displayName: true,
-          },
-        },
+        writer: true,
       },
       where: { id: postId },
+      loadEagerRelations: true,
       loadRelationIds: false,
+      relationLoadStrategy: 'query',
     });
     return new ShowPostDto(post);
-  }
-
-  async findMyJoinedPost(userId: number): Promise<ShowPostDto[]> {
-    const posts = await this.postRepository.find({
-      where: { team: { user: { id: userId } } },
-    });
-    return posts.map((post) => new ShowPostDto(post));
   }
 
   async findAll(): Promise<ShowPostDto[]> {
     const posts: Post[] = await this.postRepository.find({
       relations: {
-        writer: {
-          profile: {
-            displayName: true,
-          },
-        },
+        writer: true,
       },
+      loadEagerRelations: true,
       loadRelationIds: false,
+      relationLoadStrategy: 'query',
+      cache: true,
     });
     return posts.map((post) => new ShowPostDto(post));
   }
 
-  async findWriterIdByIdFail(postId: number): Promise<User> {
-    const { writer } = await this.postRepository.findOneOrFail({
-      select: {
-        writerId: true,
-      },
-      where: { id: postId },
+  async findMyJoinedPost(userId: number): Promise<ShowPostDto[]> {
+    const posts: Post[] = await this.postRepository.find({
+      where: { team: { userId: userId } },
+      relations: { team: true },
     });
-    return writer;
+    return posts.map((post) => new ShowPostDto(post));
   }
 
   async updatePost(post: Post, updatePostDto: UpdatePostDto): Promise<void> {

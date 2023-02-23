@@ -9,7 +9,7 @@ export class ShowTeamDto {
   @ApiHideProperty() @Exclude() private readonly _status: JoinStatus;
   @ApiHideProperty() @Exclude() private readonly _bio: string;
 
-  constructor(private readonly team: Team) {
+  constructor(team: Team) {
     this._id = team.id;
     this._participants = team.user.profile.displayName;
     this._status = team.status;

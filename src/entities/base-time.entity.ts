@@ -1,17 +1,23 @@
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { LocalDateTimeTransformer } from '../common/transformer/local-date-time.transformer';
 import { LocalDateTime } from '@js-joda/core';
+import { DateTimeUtil } from '../common/utils/date-time.util';
 
-export class BaseTimeEntity {
+export abstract class BaseTimeEntity {
   @CreateDateColumn({
     type: 'datetime',
-    transformer: new LocalDateTimeTransformer(),
   })
-  createdAt: LocalDateTime;
+  createdAt: Date;
 
   @UpdateDateColumn({
     type: 'datetime',
-    transformer: new LocalDateTimeTransformer(),
   })
-  updatedAt: LocalDateTime;
+  updatedAt: Date;
+
+  getCreatedAt(): LocalDateTime {
+    return DateTimeUtil.toLocalDateTime(this.createdAt);
+  }
+
+  getUpdatedAt(): LocalDateTime {
+    return DateTimeUtil.toLocalDateTime(this.updatedAt);
+  }
 }

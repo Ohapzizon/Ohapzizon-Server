@@ -16,7 +16,7 @@ import { CustomValidationError } from './custom-validation.error';
 import { ResponseStatus } from '../response/response.status';
 
 @Catch()
-export class GlobalExceptionFilter implements ExceptionFilter {
+export class GlobalExceptionFilter implements ExceptionFilter<Error> {
   constructor(
     private readonly logger: LoggerService,
     private readonly httpAdapter: AbstractHttpAdapter,
@@ -35,7 +35,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           exception = new BadRequestException(exception.message);
           break;
         default:
-          this.logger.debug(exception.stack);
+          this.logger.debug(exception.stack, 'ExceptionFilter');
           exception = new InternalServerErrorException('서버 에러 입니다.');
           break;
       }
@@ -57,7 +57,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       responseBody,
     };
     this.logger.error(log);
-    this.logger.error(responseBody['statusCode']);
 
     await this.httpAdapter.reply(
       ctx.getResponse(),

@@ -57,15 +57,16 @@ export class AuthController {
   })
   @RegisterAuth()
   @HttpCode(201)
-  @Post('')
+  @Post('social')
   async socialRegister(
     @RegisterToken() socialRegisterTokenData: SocialRegisterTokenData,
-    @Body() registerUserDto: RegisterUserProfileDto,
+    @Body() registerUserProfileDto: RegisterUserProfileDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<LoginDto>> {
-    const savedUser: User = await this.authService.socialRegister(
+    const savedUser: User = await this.authService.register(
       socialRegisterTokenData,
-      registerUserDto,
+      registerUserProfileDto,
+      true,
     );
     const tokens: TokenDto = await this.tokenService.generateUserToken(
       savedUser,
@@ -77,16 +78,16 @@ export class AuthController {
     );
   }
 
-  @ApiOperation({ summary: '프로필 조회' })
+  @ApiOperation({ summary: '소셜 프로필 조회' })
   @ApiOkResponse({
-    description: '프로필 조회에 성공하였습니다.',
+    description: '소셜 프로필 조회에 성공하였습니다.',
     type: ProfileResponse,
   })
   @ApiNotFoundResponse({
     description: '요청 값을 찾을 수 없습니다.',
   })
   @RegisterAuth()
-  @Get('profile')
+  @Get('social/profile')
   async getSocialProfile(
     @RegisterToken('profile') profile: SocialProfileDto,
   ): Promise<ResponseEntity<SocialProfileDto>> {

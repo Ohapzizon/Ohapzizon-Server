@@ -7,15 +7,17 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AccessTokenData } from '../../token/types/token-data';
-import User from '../../entities/user.entity';
 import { PostService } from '../../post/post.service';
+import { ModuleRef } from '@nestjs/core';
 import { TeamService } from '../../team/team.service';
+import Team from '../../entities/team.entity';
 
 @Injectable()
 export class CheckWriterInterceptor implements NestInterceptor {
+  private teamService?: TeamService;
   constructor(
     private readonly postService: PostService,
-    private readonly teamService: TeamService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   async intercept(
@@ -24,13 +26,15 @@ export class CheckWriterInterceptor implements NestInterceptor {
   ): Promise<Observable<void>> {
     const request = context.switchToHttp().getRequest();
     const accessToken: AccessTokenData = request.access_token;
-    const postId = request.query?.postId;
-    const teamId = request.query?.teamId;
-    let writer: User;
-
-    if (postId) writer = await this.teamService.findWriterIdByIdFail(teamId);
-    if (teamId) writer = await this.postService.findWriterIdByIdFail(postId);
-    if (writer.id !== accessToken.user_id)
+    let postId: number | null = request.query?.postId;
+    const teamId: number | null = request.query?.teamId;
+    if (teamId) {
+      this.teamService = await this.moduleRef.create(TeamService);
+      const team: Team = await this.teamService.findOneByIdOrFail(teamId);
+      postId = team.postId;
+    }
+    const writerId = await this.postService.findWriterIdByIdOrFail(postId);
+    if (writerId !== accessToken.user_id)
       throw new ForbiddenException('작성자가 아닙니다.');
     return next.handle();
   }

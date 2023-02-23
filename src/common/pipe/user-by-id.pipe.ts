@@ -1,5 +1,5 @@
 import { PipeTransform, Injectable, ArgumentMetadata } from '@nestjs/common';
-import { UserService } from '../user.service';
+import { UserService } from '../../user/user.service';
 import User from '../../entities/user.entity';
 
 @Injectable()

@@ -18,8 +18,9 @@ export class CheckPostStatusInterceptor implements NestInterceptor {
   ): Promise<Observable<boolean>> {
     const request = context.switchToHttp().getRequest();
     const { postId } = request.query;
-    const post = await this.postService.findOneByIdOrFail(postId);
-    if (post.status === PostStatus.CLOSED)
+    const postStatus: PostStatus =
+      await this.postService.findPostStatusByIdOrFail(postId);
+    if (postStatus === PostStatus.CLOSED)
       throw new BadRequestException('참가 모집이 마감된 글입니다.');
     return next.handle();
   }

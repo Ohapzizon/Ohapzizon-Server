@@ -37,11 +37,11 @@ import { DeletePostResponse } from './res/delete-post.response';
 import { NotFoundError } from '../common/response/swagger/error/not-found.error';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
 import { ClosePostResponse } from './res/close-post.response';
-import { postByIdPipe } from './pipe/post-by-id.pipe';
+import { postByIdPipe } from '../common/pipe/post-by-id.pipe';
 import PostEntity from '../entities/post.entity';
-import { GROUP_ALL_POSTS, GROUP_POST } from './enum/group-post';
-import { CheckWriterInterceptor } from '../common/interceptor/check-writer.interceptor';
 import { FindMyJoinedPostResponse } from '../team/res/find-my-joined-post.response';
+import { CheckWriterInterceptor } from '../common/interceptor/check-writer.interceptor';
+import { GROUP_ALL_POSTS, GROUP_POST } from '../common/constants';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -101,7 +101,7 @@ export class PostController {
     type: FindMyJoinedPostResponse,
   })
   @Auth()
-  @Get('post')
+  @Get('mypost')
   async findMyJoinedPost(
     @AccessToken('user_id') userId: number,
   ): Promise<ResponseEntity<ShowPostDto[]>> {
@@ -161,7 +161,7 @@ export class PostController {
   @UseInterceptors(CheckWriterInterceptor)
   @Auth()
   @Patch('close')
-  async closedPost(
+  async closePost(
     @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
   ): Promise<ResponseEntity<string>> {
     await this.postService.closePost(post);

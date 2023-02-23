@@ -16,7 +16,7 @@ import { TokenDto } from './dto/token.dto';
 import { RefreshTokenResponse } from './res/refresh-token.response';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
 import { Response } from 'express';
-import { userByIdPipe } from '../user/pipe/user-by-id.pipe';
+import { userByIdPipe } from '../common/pipe/user-by-id.pipe';
 import User from '../entities/user.entity';
 import { RefreshAuth } from '../common/decorators/refresh-auth.decorator';
 import { CookieUtil } from '../common/utils/cookie.util';

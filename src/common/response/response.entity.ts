@@ -1,6 +1,5 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { HttpStatus } from '@nestjs/common';
 import { ResponseStatus } from './response.status';
 
 export class ResponseEntity<T> {
@@ -23,7 +22,7 @@ export class ResponseEntity<T> {
   }
 
   static CREATED_WITH_DATA<T>(message: string, data: T): ResponseEntity<T> {
-    return new ResponseEntity<T>(HttpStatus.CREATED, message, data);
+    return new ResponseEntity<T>(ResponseStatus.CREATED, message, data);
   }
 
   static ERROR_WITH_DATA<T>(

@@ -1,4 +1,4 @@
-import { TokenData } from '../types/token-data';
+import { TokenData } from '../../token/types/token-data';
 import * as jwt from 'jsonwebtoken';
 import {
   GoneException,
@@ -30,8 +30,6 @@ export const validateToken = async <T extends TokenData>(
         throw new InternalServerErrorException('서버 에러입니다.');
     }
   }
-  if (verify.iss === 'https://ohapzizon.com')
-    throw new UnauthorizedException('Invalid Token');
   return verify;
 };
 

@@ -1,7 +1,7 @@
 import { applyDecorators, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { InvalidTokenError } from '../response/swagger/error/invalid-token.error';
-import { RegisterAuthGuard } from '../../auth/guard/register-auth.guard';
+import { RegisterAuthGuard } from '../guard/register-auth.guard';
 
 export function RegisterAuth() {
   return applyDecorators(

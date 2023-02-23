@@ -8,6 +8,10 @@ import User from '../../entities/user.entity';
 
 @Injectable()
 export class GoogleAuthService {
+  private readonly GOOGLE_CLIENT_ID: string;
+  private readonly GOOGLE_CLIENT_SECRET: string;
+  private readonly CALLBACK_URL: string;
+
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
@@ -19,10 +23,6 @@ export class GoogleAuthService {
     );
     this.CALLBACK_URL = this.configService.get<string>('CALLBACK_URL');
   }
-
-  private readonly GOOGLE_CLIENT_ID: string;
-  private readonly GOOGLE_CLIENT_SECRET: string;
-  private readonly CALLBACK_URL: string;
 
   getGoogleRedirectURL() {
     const uri =

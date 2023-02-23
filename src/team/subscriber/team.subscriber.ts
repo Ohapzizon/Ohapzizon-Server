@@ -1,4 +1,5 @@
 import {
+  DataSource,
   EntitySubscriberInterface,
   EventSubscriber,
   InsertEvent,
@@ -9,22 +10,18 @@ import { PostStatus } from '../../post/enum/post-status';
 
 @EventSubscriber()
 export class TeamSubscriber implements EntitySubscriberInterface<Team> {
-  constructor(private readonly event: InsertEvent<Team>) {}
-
   listenTo(): ReturnType<EntitySubscriberInterface['listenTo']> {
     return Team;
   }
 
-  async afterInsert(): Promise<void> {
-    const { entity, manager } = this.event;
-    console.log(entity.post);
-    const post: Post = await manager.findOneByOrFail(Post, {
-      id: entity.postId,
+  async afterInsert(event: InsertEvent<Team>): Promise<void> {
+    const { entity, manager } = event;
+    const post: Post = await manager.findOneOrFail(Post, {
+      where: {
+        id: entity.postId,
+      },
     });
     const count = await manager.count(Team);
-    if (post.limit <= count) {
-      post.status = PostStatus.CLOSED;
-      await manager.save(post);
-    }
+    if (post.limit <= count) post.status = PostStatus.CLOSED;
   }
 }

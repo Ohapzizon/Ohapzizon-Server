@@ -1,13 +1,12 @@
 import { DataSource } from 'typeorm';
+import { DATA_SOURCE, USER_PROFILE_REPOSITORY } from '../../../common/constants';
 import UserProfile from '../../../entities/user-profile.entity';
 
 export const userProfileProvider = [
   {
-    provide: 'USER_PROFILE_REPOSITORY',
-    useFactory: async (dataSource: DataSource) => {
-      console.log(dataSource);
-      return dataSource.getRepository(UserProfile);
-    },
-    inject: ['DATA_SOURCE'],
+    provide: USER_PROFILE_REPOSITORY,
+    useFactory: (dataSource: DataSource) =>
+      dataSource.getRepository(UserProfile),
+    inject: [DATA_SOURCE],
   },
 ];

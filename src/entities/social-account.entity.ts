@@ -1,10 +1,10 @@
-import { Column, Entity, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import User from './user.entity';
 import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('social_account')
 export default class SocialAccount extends BaseTimeEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ name: 'user_id' })
   userId: number;
 
   @Column()
@@ -19,5 +19,6 @@ export default class SocialAccount extends BaseTimeEntity {
   @OneToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

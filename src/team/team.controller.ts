@@ -31,12 +31,12 @@ import { AcceptJoinResponse } from './res/accept-join.response';
 import { CancelJoinResponse } from './res/cancel-join.response';
 import { NotFoundError } from '../common/response/swagger/error/not-found.error';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
-import { postByIdPipe } from '../post/pipe/post-by-id.pipe';
+import { postByIdPipe } from '../common/pipe/post-by-id.pipe';
 import PostEntity from '../entities/post.entity';
 import { UpdateJoinStatusDto } from './dto/update-join-status.dto';
-import { CheckWriterInterceptor } from '../common/interceptor/check-writer.interceptor';
 import { CheckPostStatusInterceptor } from '../common/interceptor/check-post-status.interceptor';
 import { CheckJoinedUserInterceptor } from '../common/interceptor/check-joined-user.interceptor';
+import { CheckWriterInterceptor } from '../common/interceptor/check-writer.interceptor';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',

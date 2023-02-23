@@ -6,14 +6,16 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { HttpAdapterHost, Reflector } from '@nestjs/core';
-import { GlobalExceptionFilter } from '../../common/filters/global-exception.filter';
 import { ValidationError } from 'class-validator';
 import { CustomValidationError } from '../../common/filters/custom-validation.error';
+import * as cookieParser from 'cookie-parser';
+import { GlobalExceptionFilter } from '../../common/filters/global-exception.filter';
 
 export function setNestApp<T extends INestApplication>(app: T): void {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(Logger), httpAdapter));
   app.useLogger(app.get(Logger));
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

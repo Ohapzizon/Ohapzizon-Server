@@ -1,21 +1,24 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import UserProfile from '../../entities/user-profile.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ShowUserProfileDto } from './dto/show-user-profile.dto';
+import { DATA_SOURCE } from '../../common/constants';
 
 @Injectable()
 export class UserProfileService {
-  constructor(
-    @Inject('USER_PROFILE_REPOSITORY')
-    private readonly userProfileRepository: Repository<UserProfile>,
-  ) {}
+  private readonly userProfileRepository: Repository<UserProfile>;
+  constructor(@Inject(DATA_SOURCE) private readonly dataSource: DataSource) {
+    this.userProfileRepository = this.dataSource.getRepository(UserProfile);
+  }
 
   async findShowUserProfileDtoById(
     userId: number,
   ): Promise<ShowUserProfileDto> {
     const userProfile: UserProfile =
-      await this.userProfileRepository.findOneByOrFail({ userId: userId });
+      await this.userProfileRepository.findOneByOrFail({
+        user: { id: userId },
+      });
     return new ShowUserProfileDto(userProfile);
   }
 
@@ -24,7 +27,9 @@ export class UserProfileService {
     updateUserProfileDto: UpdateUserProfileDto,
   ): Promise<void> {
     const profile: UserProfile =
-      await this.userProfileRepository.findOneByOrFail({ userId: userId });
+      await this.userProfileRepository.findOneByOrFail({
+        user: { id: userId },
+      });
     profile.discordTag = updateUserProfileDto.discordTag;
     profile.displayName = updateUserProfileDto.displayName;
     await this.userProfileRepository.save(profile);

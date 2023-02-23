@@ -1,12 +1,12 @@
 import { applyDecorators, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiHeader,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { InvalidTokenError } from '../response/swagger/error/invalid-token.error';
-import { JwtRefreshAuthGuard } from '../../auth/guard/jwt-refresh-auth.guard';
+import { JwtRefreshAuthGuard } from '../guard/jwt-refresh-auth.guard';
 
 export function RefreshAuth() {
   return applyDecorators(

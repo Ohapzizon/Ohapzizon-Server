@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { RegisterTokenData } from '../../token/types/token-data';
-import { validateToken } from '../../token/lib/token';
+import { validateToken } from '../utils/token.util';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TokenService } from './token.service';
 import { TokenController } from './token.controller';
-import { UserService } from '../user/user.service';
+import { CookieUtil } from '../common/utils/cookie.util';
 import { authTokenProvider } from './provider/auth-token.provider';
-import { userProvider } from '../user/provider/user.provider';
+import { UserModule } from '../user/user.module';
 
 @Module({
+  imports: [UserModule],
   controllers: [TokenController],
-  providers: [...authTokenProvider, TokenService, ...userProvider, UserService],
+  providers: [TokenService, CookieUtil, ...authTokenProvider],
+  exports: [TokenService, CookieUtil, ...authTokenProvider],
 })
 export class TokenModule {}

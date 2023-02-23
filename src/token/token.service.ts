@@ -6,33 +6,47 @@ import User from '../entities/user.entity';
 import AuthToken from '../entities/auth-token.entity';
 import { TokenDto } from './dto/token.dto';
 import { Repository } from 'typeorm';
+import {
+  ACCESS_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRATION_TIME,
+  REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRATION_TIME,
+  REGISTER_TOKEN_SECRET,
+  REGISTER_TOKEN_EXPIRATION_TIME,
+  AUTH_TOKEN_REPOSITORY,
+} from '../common/constants';
 
 @Injectable()
 export class TokenService {
+  private readonly ACCESS_TOKEN_SECRET: string;
+  private readonly REFRESH_TOKEN_SECRET: string;
+  private readonly REGISTER_TOKEN_SECRET: string;
+  private readonly ACCESS_TOKEN_EXPIRATION: number;
+  private readonly REFRESH_TOKEN_EXPIRATION: number;
+  private readonly REGISTER_TOKEN_EXPIRATION: number;
+
   constructor(
-    @Inject('AUTH_TOKEN_REPOSITORY')
+    @Inject(AUTH_TOKEN_REPOSITORY)
     private readonly authTokenRepository: Repository<AuthToken>,
     private readonly configService: ConfigService,
-  ) {}
-
-  private ACCESS_TOKEN_SECRET = this.configService.get<string>(
-    'ACCESS_TOKEN_SECRET',
-  );
-  private REFRESH_TOKEN_SECRET = this.configService.get<string>(
-    'REFRESH_TOKEN_SECRET',
-  );
-  private REGISTER_TOKEN_SECRET = this.configService.get<string>(
-    'REGISTER_TOKEN_SECRET',
-  );
-  private ACCESS_TOKEN_EXPIRATION = +this.configService.get<number>(
-    'ACCESS_TOKEN_EXPIRATION_TIME',
-  );
-  private REFRESH_TOKEN_EXPIRATION = +this.configService.get<number>(
-    'REFRESH_TOKEN_EXPIRATION_TIME',
-  );
-  private REGISTER_TOKEN_EXPIRATION = +this.configService.get<number>(
-    'REGISTER_TOKEN_EXPIRATION_TIME',
-  );
+  ) {
+    this.ACCESS_TOKEN_SECRET =
+      this.configService.get<string>(ACCESS_TOKEN_SECRET);
+    this.REFRESH_TOKEN_SECRET =
+      this.configService.get<string>(REFRESH_TOKEN_SECRET);
+    this.REGISTER_TOKEN_SECRET = this.configService.get<string>(
+      REGISTER_TOKEN_SECRET,
+    );
+    this.ACCESS_TOKEN_EXPIRATION = +this.configService.get<number>(
+      ACCESS_TOKEN_EXPIRATION_TIME,
+    );
+    this.REFRESH_TOKEN_EXPIRATION = +this.configService.get<number>(
+      REFRESH_TOKEN_EXPIRATION_TIME,
+    );
+    this.REGISTER_TOKEN_EXPIRATION = +this.configService.get<number>(
+      REGISTER_TOKEN_EXPIRATION_TIME,
+    );
+  }
 
   async generateUserToken(user: User): Promise<TokenDto> {
     const accessToken = this.generateAccessToken({

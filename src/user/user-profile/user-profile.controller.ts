@@ -6,41 +6,41 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Auth } from '../common/decorators/auth.decorator';
-import { AccessToken } from '../common/decorators/token.decorator';
-import { ResponseEntity } from '../common/response/response.entity';
-import { UserProfileService } from './user-profile/user-profile.service';
-import { FindUserProfileResponse } from './user-profile/res/find-user-profile.response';
-import { NotFoundError } from '../common/response/swagger/error/not-found.error';
-import { UpdateUserProfileDto } from './user-profile/dto/update-user-profile.dto';
-import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
-import { UpdateUserProfileResponse } from './user-profile/res/update-user-profile.response';
-import { ShowUserProfileDto } from './user-profile/dto/show-user-profile.dto';
+import { InternalServerError } from '../../common/response/swagger/error/internal-server.error';
+import { UserProfileService } from './user-profile.service';
+import { FindUserProfileResponse } from './res/find-user-profile.response';
+import { NotFoundError } from '../../common/response/swagger/error/not-found.error';
+import { ShowUserProfileDto } from './dto/show-user-profile.dto';
+import { ResponseEntity } from '../../common/response/response.entity';
+import { UpdateUserProfileResponse } from './res/update-user-profile.response';
+import { Auth } from '../../common/decorators/auth.decorator';
+import { AccessToken } from '../../common/decorators/token.decorator';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
   type: InternalServerError,
 })
-@ApiTags('user')
-@Controller('user')
+@ApiTags('user-profile')
+@Controller('profile')
 export class UserController {
   constructor(private readonly userProfileService: UserProfileService) {}
 
-  @ApiOperation({ summary: '프로필 조회' })
+  @ApiOperation({ summary: '본인 프로필 조회' })
   @ApiOkResponse({
-    description: '프로필 조회에 성공하였습니다.',
+    description: '본인 프로필 조회에 성공하였습니다.',
     type: FindUserProfileResponse,
   })
   @ApiNotFoundResponse({
     description: '요청하신 자료를 찾을 수 없습니다.',
     type: NotFoundError,
   })
-  @Get('profile/:userId')
+  @Get('')
   async findUserProfile(
-    @Param('userId') userId: number,
+    @AccessToken('user_id') userId: number,
   ): Promise<ResponseEntity<ShowUserProfileDto>> {
     return ResponseEntity.OK_WITH_DATA(
-      '프로필 조회에 성공하였습니다.',
+      '본인 프로필 조회에 성공하였습니다.',
       await this.userProfileService.findShowUserProfileDtoById(userId),
     );
   }
@@ -54,12 +54,15 @@ export class UserController {
     type: UpdateUserProfileResponse,
   })
   @Auth()
-  @Patch('profile')
+  @Patch('')
   async updateProfile(
     @AccessToken('user_id') userId: number,
-    @Body() updateUserDto: UpdateUserProfileDto,
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
   ) {
-    await this.userProfileService.updateProfileByUserId(userId, updateUserDto);
+    await this.userProfileService.updateProfileByUserId(
+      userId,
+      updateUserProfileDto,
+    );
     return ResponseEntity.OK_WITH('프로필 수정에 성공하였습니다.');
   }
 }

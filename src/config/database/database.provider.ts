@@ -4,10 +4,11 @@ import entities from '../../entities';
 import { TeamSubscriber } from '../../team/subscriber/team.subscriber';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
+import { DATA_SOURCE } from '../../common/constants';
 
 export const databaseProviders = [
   {
-    provide: 'DATA_SOURCE',
+    provide: DATA_SOURCE,
     useFactory: async (configService: ConfigService, logger: Logger) => {
       const dataSource = new DataSource({
         type: 'mysql',
@@ -22,7 +23,7 @@ export const databaseProviders = [
         subscribers: [TeamSubscriber],
         synchronize: true,
       });
-      return dataSource
+      await dataSource
         .initialize()
         .then(() => {
           logger.log('DataSource has been initialized', 'TypeORM');
@@ -30,6 +31,7 @@ export const databaseProviders = [
         .catch((e) => {
           logger.error(e);
         });
+      return dataSource;
     },
     inject: [ConfigService, Logger],
   },

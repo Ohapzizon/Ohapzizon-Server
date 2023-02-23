@@ -1,16 +1,22 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import Team from '../entities/team.entity';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { ShowTeamDto } from './dto/show-team.dto';
 import Post from '../entities/post.entity';
 import { UpdateJoinStatusDto } from './dto/update-join-status.dto';
 import { Repository } from 'typeorm';
-import User from '../entities/user.entity';
+import { TEAM_REPOSITORY } from '../common/constants';
+import UserProfile from '../entities/user-profile.entity';
 
 @Injectable()
 export class TeamService {
   constructor(
-    @Inject('TEAM_REPOSITORY')
+    @Inject(TEAM_REPOSITORY)
     private readonly teamRepository: Repository<Team>,
   ) {}
 
@@ -33,40 +39,26 @@ export class TeamService {
     return this.findShowTeamDtoByPostId(post.id);
   }
 
-  async findOneByIdOrFail(teamId: number) {
-    return this.teamRepository.findOneByOrFail({ id: teamId });
+  async findOneByIdOrFail(teamId: number): Promise<Team> {
+    return (await this.teamRepository.findOneBy({ id: teamId }).then((team) => {
+      if (!team) throw new NotFoundException();
+    })) as Team;
   }
 
   async findShowTeamDtoByPostId(postId: number): Promise<ShowTeamDto[]> {
-    const team = await this.teamRepository.find({
-      where: { postId: postId },
-      select: {
-        id: true,
-        status: true,
-        bio: true,
-        user: { profile: { displayName: true } },
-      },
-      relations: { user: { profile: true } },
-      loadRelationIds: false,
-      relationLoadStrategy: 'query',
-    });
+    const team: Team[] = (await this.teamRepository
+      .createQueryBuilder('team')
+      .select('team.id', 'id')
+      .addSelect('team.status', 'status')
+      .addSelect('team.bio', 'bio')
+      .addSelect('userProfile.displayName', 'displayName')
+      .leftJoin(UserProfile, 'userProfile')
+      .where('team.postId = :postId', { postId: postId })
+      .getOne()
+      .then((team) => {
+        if (!team) throw new NotFoundException();
+      })) as Team[];
     return team.map((team) => new ShowTeamDto(team));
-  }
-
-  async findWriterIdByIdFail(teamId: number): Promise<User> {
-    const {
-      post: { writer },
-    }: Team = await this.teamRepository.findOneOrFail({
-      select: {
-        post: {
-          writerId: true,
-        },
-      },
-      where: { id: teamId },
-      relations: { post: true },
-      loadRelationIds: false,
-    });
-    return writer;
   }
 
   async updateJoinStatus(

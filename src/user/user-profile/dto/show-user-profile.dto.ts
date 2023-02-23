@@ -12,13 +12,13 @@ export class ShowUserProfileDto {
   @ApiHideProperty() @Exclude() private readonly _grade: Grade;
   @ApiHideProperty() @Exclude() private readonly _department: Department;
 
-  constructor(private readonly userProfile: UserProfile) {
-    this._userId = this.userProfile.userId;
-    this._displayName = this.userProfile.displayName;
-    this._discordTag = this.userProfile.discordTag;
-    this._thumbnail = this.userProfile.thumbnail;
-    this._grade = this.userProfile.grade;
-    this._department = this.userProfile.department;
+  constructor(userProfile: UserProfile) {
+    this._userId = userProfile.userId;
+    this._displayName = userProfile.displayName;
+    this._discordTag = userProfile.discordTag;
+    this._thumbnail = userProfile.thumbnail;
+    this._grade = userProfile.grade;
+    this._department = userProfile.department;
   }
 
   @ApiProperty({
