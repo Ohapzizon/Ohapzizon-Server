@@ -1,66 +1,77 @@
 import {
   BadRequestException,
-  ForbiddenException,
+  Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import Team from '../entities/team.entity';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { ShowTeamDto } from './dto/show-team.dto';
-import { teamRepository } from './team.repository';
 import Post from '../entities/post.entity';
-import { PostStatus } from '../post/enum/post-status';
-import { postRepository } from '../post/post.repository';
 import { UpdateJoinStatusDto } from './dto/update-join-status.dto';
+import { Repository } from 'typeorm';
+import { TEAM_REPOSITORY } from '../common/constants';
+import UserProfile from '../entities/user-profile.entity';
 
 @Injectable()
 export class TeamService {
-  async findShowTeamDtoByPostId(postId: number): Promise<ShowTeamDto[]> {
-    return teamRepository
-      .findShowTeam()
-      .where('post.id = :id', { id: postId })
-      .innerJoin('t.post', 'post')
-      .getRawMany<ShowTeamDto>();
-  }
+  constructor(
+    @Inject(TEAM_REPOSITORY)
+    private readonly teamRepository: Repository<Team>,
+  ) {}
 
   async join(
     post: Post,
     userId: number,
     createTeamDto: CreateTeamDto,
   ): Promise<ShowTeamDto[]> {
-    if (post.status === PostStatus.CLOSED)
-      throw new BadRequestException('참가 모집이 마감된 글입니다.');
-    const existTeam: boolean = await teamRepository.isExistByPostIdAndUserId(
-      post.id,
-      userId,
-    );
-    if (existTeam) throw new BadRequestException('이미 참가한 사용자입니다.');
-    const team: Team = teamRepository.create({
-      bio: createTeamDto.bio,
-      post: { id: post.id },
-      user: { id: userId },
+    const existTeam: Team | null = await this.teamRepository.findOneBy({
+      postId: post.id,
+      userId: userId,
     });
-    await teamRepository.save(team);
-    const count = await teamRepository.countBy({ post: { id: post.id } });
-    if (post.limit <= count) {
-      post.status = PostStatus.CLOSED;
-      await postRepository.save(post);
-    }
+    if (existTeam) throw new BadRequestException('이미 참가한 사용자입니다.');
+    const team: Team = this.teamRepository.create({
+      bio: createTeamDto.bio,
+      postId: post.id,
+      userId: userId,
+    });
+    await this.teamRepository.save(team);
     return this.findShowTeamDtoByPostId(post.id);
+  }
+
+  async findOneByIdOrFail(teamId: number): Promise<Team> {
+    return (await this.teamRepository.findOneBy({ id: teamId }).then((team) => {
+      if (!team) throw new NotFoundException();
+    })) as Team;
+  }
+
+  async findShowTeamDtoByPostId(postId: number): Promise<ShowTeamDto[]> {
+    const team: Team[] = (await this.teamRepository
+      .createQueryBuilder('team')
+      .select('team.id', 'id')
+      .addSelect('team.status', 'status')
+      .addSelect('team.bio', 'bio')
+      .addSelect('userProfile.displayName', 'displayName')
+      .leftJoin(UserProfile, 'userProfile')
+      .where('team.postId = :postId', { postId: postId })
+      .getOne()
+      .then((team) => {
+        if (!team) throw new NotFoundException();
+      })) as Team[];
+    return team.map((team) => new ShowTeamDto(team));
   }
 
   async updateJoinStatus(
     teamId: number,
     updateJoinStatusDto: UpdateJoinStatusDto,
   ): Promise<void> {
-    const team: Team = await teamRepository.findOneByIdOrFail(teamId);
-    team.status = updateJoinStatusDto.joinStatus;
-    await teamRepository.save(team);
+    await this.teamRepository.update(
+      { id: teamId },
+      { status: updateJoinStatusDto.joinStatus },
+    );
   }
 
-  async cancelJoinRequest(teamId: number, userId: number): Promise<void> {
-    const team: Team = await teamRepository.findOneWithUserByIdOrFail(teamId);
-    if (team.user.id !== userId)
-      throw new ForbiddenException('신청자가 아닙니다.');
-    await teamRepository.delete({ id: team.id });
+  async cancelJoinRequest(teamId: number): Promise<void> {
+    await this.teamRepository.delete({ id: teamId });
   }
 }

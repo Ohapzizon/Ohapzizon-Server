@@ -11,7 +11,7 @@ import {
   Put,
   Query,
   SerializeOptions,
-  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -37,10 +37,11 @@ import { DeletePostResponse } from './res/delete-post.response';
 import { NotFoundError } from '../common/response/swagger/error/not-found.error';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
 import { ClosePostResponse } from './res/close-post.response';
-import { WriterGuard } from './guard/writer.guard';
-import { postByIdPipe } from './pipe/post-by-id.pipe';
+import { postByIdPipe } from '../common/pipe/post-by-id.pipe';
 import PostEntity from '../entities/post.entity';
-import { GROUP_ALL_POSTS, GROUP_POST } from './enum/group-post';
+import { FindMyJoinedPostResponse } from '../team/res/find-my-joined-post.response';
+import { CheckWriterInterceptor } from '../common/interceptor/check-writer.interceptor';
+import { GROUP_ALL_POSTS, GROUP_POST } from '../common/constants';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -66,13 +67,9 @@ export class PostController {
     @AccessToken('user_id') userId: number,
     @Body() createPostDto: CreatePostDto,
   ): Promise<ResponseEntity<ShowPostDto>> {
-    const data: ShowPostDto = await this.postService.posting(
-      userId,
-      createPostDto,
-    );
     return ResponseEntity.CREATED_WITH_DATA(
       '모집글 게시에 성공하였습니다.',
-      data,
+      await this.postService.posting(userId, createPostDto),
     );
   }
 
@@ -89,12 +86,28 @@ export class PostController {
   async findOnePost(
     @Param('postId', ParseIntPipe) postId: number,
   ): Promise<ResponseEntity<ShowPostDto>> {
-    const data: ShowPostDto = await this.postService.findShowPostDtoByIdOrFail(
-      postId,
-    );
     return ResponseEntity.OK_WITH_DATA(
       '모집글 상세조회에 성공하였습니다.',
-      data,
+      await this.postService.findShowPostDtoByIdOrFail(postId),
+    );
+  }
+
+  @ApiOperation({
+    summary: '자신이 참여한 모집글 조회',
+    description: '자신이 참여한 모집글을 조회합니다.',
+  })
+  @ApiOkResponse({
+    description: '참여한 모집글 조회에 성공하였습니다.',
+    type: FindMyJoinedPostResponse,
+  })
+  @Auth()
+  @Get('mypost')
+  async findMyJoinedPost(
+    @AccessToken('user_id') userId: number,
+  ): Promise<ResponseEntity<ShowPostDto[]>> {
+    return ResponseEntity.OK_WITH_DATA(
+      '참여한 모집글 조회에 성공하였습니다.',
+      await this.postService.findMyJoinedPost(userId),
     );
   }
 
@@ -108,10 +121,9 @@ export class PostController {
     groups: [GROUP_ALL_POSTS],
   })
   async findAll(): Promise<ResponseEntity<ShowPostDto[]>> {
-    const data: ShowPostDto[] = await this.postService.findAll();
     return ResponseEntity.OK_WITH_DATA(
       '모집글 전체 조회에 성공하였습니다.',
-      data,
+      await this.postService.findAll(),
     );
   }
 
@@ -125,7 +137,7 @@ export class PostController {
     type: NotFoundError,
   })
   @ApiQuery({ name: 'postId', required: true, type: Number })
-  @UseGuards(WriterGuard)
+  @UseInterceptors(CheckWriterInterceptor)
   @Auth()
   @Put('')
   async updatePost(
@@ -146,10 +158,10 @@ export class PostController {
     type: NotFoundError,
   })
   @ApiQuery({ name: 'postId', required: true, type: Number })
-  @UseGuards(WriterGuard)
+  @UseInterceptors(CheckWriterInterceptor)
   @Auth()
   @Patch('close')
-  async closedPost(
+  async closePost(
     @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
   ): Promise<ResponseEntity<string>> {
     await this.postService.closePost(post);
@@ -166,7 +178,7 @@ export class PostController {
     type: NotFoundError,
   })
   @ApiQuery({ name: 'postId', required: false, type: Number })
-  @UseGuards(WriterGuard)
+  @UseInterceptors(CheckWriterInterceptor)
   @Auth()
   @Delete('')
   async deletePost(

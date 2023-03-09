@@ -2,6 +2,7 @@ import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from '../user/enum/role';
 import UserProfile from './user-profile.entity';
 import { BaseTimeEntity } from './base-time.entity';
+import Post from './post.entity';
 
 @Entity('user')
 export default class User extends BaseTimeEntity {
@@ -21,8 +22,9 @@ export default class User extends BaseTimeEntity {
   })
   role: Role;
 
-  @OneToOne(() => UserProfile, (profile) => profile.user, {
-    nullable: false,
+  @OneToOne(() => UserProfile, (userProfile) => userProfile.user, {
+    eager: true,
   })
   profile: UserProfile;
+  post: Post[];
 }

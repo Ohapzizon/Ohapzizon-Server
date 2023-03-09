@@ -12,7 +12,7 @@ export class FindUserProfileResponse extends ResponseEntity<ShowUserProfileDto> 
   }
 
   @ApiProperty({
-    example: '프로필 조회에 성공하였습니다.',
+    example: '본인 프로필 조회에 성공하였습니다.',
   })
   get message(): string {
     return super.message;

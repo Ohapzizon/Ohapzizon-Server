@@ -25,17 +25,23 @@ export default class Team extends BaseTimeEntity {
   })
   status: JoinStatus;
 
+  @Column({ name: 'user_id' })
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
     nullable: false,
   })
-  @JoinColumn({ name: 'fk_user_id' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Column({ name: 'post_id', nullable: false })
+  postId: number;
 
   @ManyToOne(() => Post, (post) => post.id, {
     onDelete: 'CASCADE',
     nullable: false,
   })
-  @JoinColumn({ name: 'fk_post_id' })
+  @JoinColumn({ name: 'post_id' })
   post: Post;
 }

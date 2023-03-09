@@ -1,5 +1,5 @@
 import { Role } from '../../user/enum/role';
-import { SocialProfile } from '../../auth/types/social-profile';
+import { Profile, SocialProfile } from '../../auth/types/social-profile';
 
 export type TokenData = {
   iss: string;
@@ -20,10 +20,11 @@ export type RefreshTokenData = {
 } & TokenData;
 
 export type RegisterTokenData = {
-  profile: SocialProfile;
+  profile: Profile;
 } & TokenData;
 
 export type SocialRegisterTokenData = {
+  profile: SocialProfile;
   provider: string;
   accessToken: string;
-} & RegisterTokenData;
+} & TokenData;

@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import User from './user.entity';
 import { Grade } from '../user/user-profile/enum/grade';
 import { Department } from '../user/user-profile/enum/department';
@@ -6,7 +6,7 @@ import { BaseTimeEntity } from './base-time.entity';
 
 @Entity('user_profile')
 export default class UserProfile extends BaseTimeEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ name: 'user_id' })
   userId: number;
 
   @Column({ length: 255 })
@@ -27,5 +27,6 @@ export default class UserProfile extends BaseTimeEntity {
   @OneToOne(() => User, (user) => user.profile, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

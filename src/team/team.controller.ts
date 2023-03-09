@@ -8,7 +8,7 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { TeamService } from './team.service';
 import {
@@ -31,10 +31,12 @@ import { AcceptJoinResponse } from './res/accept-join.response';
 import { CancelJoinResponse } from './res/cancel-join.response';
 import { NotFoundError } from '../common/response/swagger/error/not-found.error';
 import { InternalServerError } from '../common/response/swagger/error/internal-server.error';
-import { WriterGuard } from '../post/guard/writer.guard';
-import { postByIdPipe } from '../post/pipe/post-by-id.pipe';
+import { postByIdPipe } from '../common/pipe/post-by-id.pipe';
 import PostEntity from '../entities/post.entity';
 import { UpdateJoinStatusDto } from './dto/update-join-status.dto';
+import { CheckPostStatusInterceptor } from '../common/interceptor/check-post-status.interceptor';
+import { CheckJoinedUserInterceptor } from '../common/interceptor/check-joined-user.interceptor';
+import { CheckWriterInterceptor } from '../common/interceptor/check-writer.interceptor';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -55,22 +57,18 @@ export class TeamController {
     type: JoinTeamResponse,
   })
   @ApiQuery({ name: 'postId', required: true, type: Number })
-  @Auth()
   @HttpCode(201)
+  @Auth()
+  @UseInterceptors(CheckPostStatusInterceptor)
   @Post('')
   async join(
     @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
     @AccessToken('user_id') userId: number,
     @Body() createTeamDto: CreateTeamDto,
   ): Promise<ResponseEntity<ShowTeamDto[]>> {
-    const data: ShowTeamDto[] = await this.teamService.join(
-      post,
-      userId,
-      createTeamDto,
-    );
     return ResponseEntity.CREATED_WITH_DATA(
       '모집글 참여 신청에 성공하였습니다.',
-      data,
+      await this.teamService.join(post, userId, createTeamDto),
     );
   }
 
@@ -88,12 +86,9 @@ export class TeamController {
   async findTeamByPostId(
     @Query('postId', ParseIntPipe, postByIdPipe) post: PostEntity,
   ): Promise<ResponseEntity<ShowTeamDto[]>> {
-    const data: ShowTeamDto[] = await this.teamService.findShowTeamDtoByPostId(
-      post.id,
-    );
     return ResponseEntity.OK_WITH_DATA(
       '신청자 명단 조회에 성공하였습니다.',
-      data,
+      await this.teamService.findShowTeamDtoByPostId(post.id),
     );
   }
 
@@ -102,7 +97,7 @@ export class TeamController {
     description: '신청 상태 변경에 성공하였습니다.',
     type: AcceptJoinResponse,
   })
-  @UseGuards(WriterGuard)
+  @UseInterceptors(CheckWriterInterceptor)
   @Auth()
   @Patch('status')
   async updateJoinStatus(
@@ -118,13 +113,13 @@ export class TeamController {
     description: '참여 신청 취소에 성공하였습니다.',
     type: CancelJoinResponse,
   })
+  @UseInterceptors(CheckJoinedUserInterceptor)
   @Auth()
   @Delete('')
   async cancelJoinRequest(
     @Query('teamId', ParseIntPipe) teamId: number,
-    @AccessToken('user_id') userId: number,
   ): Promise<ResponseEntity<string>> {
-    await this.teamService.cancelJoinRequest(teamId, userId);
+    await this.teamService.cancelJoinRequest(teamId);
     return ResponseEntity.OK_WITH('참여 신청 취소에 성공하였습니다.');
   }
 }

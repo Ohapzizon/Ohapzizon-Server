@@ -1,14 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import User from '../entities/user.entity';
-import { userRepository } from './user.repository';
+import { Repository } from 'typeorm';
+import { USER_REPOSITORY } from '../common/constants';
 
 @Injectable()
 export class UserService {
-  async findOneByIdOrFail(userId: number): Promise<User> {
-    return userRepository.findOneByIdOrFail(userId);
-  }
+  constructor(
+    @Inject(USER_REPOSITORY)
+    private userRepository: Repository<User>,
+  ) {}
 
-  async isExistByEmail(email: string): Promise<boolean> {
-    return userRepository.isExistByEmail(email);
+  async findOneByIdOrFail(userId: number): Promise<User> {
+    return this.userRepository.findOneOrFail({
+      where: { id: userId },
+      loadEagerRelations: true,
+      loadRelationIds: false,
+    });
   }
 }

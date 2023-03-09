@@ -1,6 +1,9 @@
-export type SocialProfile = {
-  socialId: string;
+export type Profile = {
   name: string;
   email: string;
-  thumbnail?: string | null;
 };
+
+export type SocialProfile = {
+  socialId: string;
+  thumbnail?: string | null;
+} & Profile;

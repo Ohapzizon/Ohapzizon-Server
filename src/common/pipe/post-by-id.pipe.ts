@@ -1,6 +1,6 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import Post from '../../entities/post.entity';
-import { PostService } from '../post.service';
+import { PostService } from '../../post/post.service';
 
 @Injectable()
 export class postByIdPipe implements PipeTransform<number, Promise<Post>> {

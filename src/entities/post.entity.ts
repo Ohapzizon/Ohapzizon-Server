@@ -3,6 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import User from './user.entity';
@@ -11,6 +12,7 @@ import { LocalDateTime } from '@js-joda/core';
 import { LocalDateTimeTransformer } from '../common/transformer/local-date-time.transformer';
 import { PostStatus } from '../post/enum/post-status';
 import { BaseTimeEntity } from './base-time.entity';
+import Team from './team.entity';
 
 @Entity('post')
 export default class Post extends BaseTimeEntity {
@@ -45,10 +47,17 @@ export default class Post extends BaseTimeEntity {
   })
   reserveDateTime: LocalDateTime;
 
+  @Column({ name: 'user_id' })
+  writerId: number;
+
   @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
     nullable: false,
   })
-  @JoinColumn({ name: 'fk_user_id' })
+  @JoinColumn({ name: 'user_id' })
   writer: User;
+
+  @OneToMany(() => Team, (team) => team.id)
+  @JoinColumn({ name: 'team_id' })
+  team: Team[];
 }

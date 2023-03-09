@@ -2,7 +2,7 @@ import { LocalDateTime } from '@js-joda/core';
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { TargetGrade } from '../enum/target-grade';
 import { Expose, Transform } from 'class-transformer';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { DateTimeUtil } from '../../common/utils/date-time.util';
 
 export class CreatePostDto {
@@ -42,15 +42,13 @@ export class CreatePostDto {
   @IsNotEmpty()
   targetGrade: TargetGrade;
 
-  // TODO
-  // @ApiProperty({
-  //   name: 'reserveDateTime',
-  //   default: '2022-10-27 12:10:24',
-  //   description: 'yyyy-MM-dd HH:mm:ss',
-  // })
-  @ApiHideProperty()
+  @ApiProperty({
+    name: 'reserveDateTime',
+    description: '예약일자',
+    example: LocalDateTime.now(),
+  })
   @Expose()
   @IsNotEmpty()
   @Transform(({ value }) => DateTimeUtil.toLocalDateTimeBy(value))
-  reserveDateTime: LocalDateTime;
+  reserveDateTime: Date;
 }

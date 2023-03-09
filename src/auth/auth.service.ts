@@ -1,115 +1,116 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { TokenService } from '../token/token.service';
 import { SocialRegisterTokenData } from '../token/types/token-data';
 import { RegisterUserProfileDto } from './dto/register-user-profile.dto';
 import SocialAccount from '../entities/social-account.entity';
-import { TokenDto } from '../token/dto/token.dto';
-import { UserService } from '../user/user.service';
-import dataSource from '../config/database/data-source';
-import { LoginDto } from './dto/login.dto';
-import { Response } from 'express';
 import User from '../entities/user.entity';
 import UserProfile from '../entities/user-profile.entity';
 import AuthToken from '../entities/auth-token.entity';
-import { userRepository } from '../user/user.repository';
-import { userProfileRepository } from '../user/user-profile/user-profile.repository';
-import { socialAccountRepository } from './social-account.repository';
-import { authTokenRepository } from '../token/token.repository';
 import { SocialProfile } from './types/social-profile';
 import { v4 as uuid } from 'uuid';
+import { Repository } from 'typeorm';
+import {
+  AUTH_TOKEN_REPOSITORY,
+  SOCIAL_ACCOUNT_REPOSITORY,
+  USER_PROFILE_REPOSITORY,
+  USER_REPOSITORY,
+} from '../common/constants';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: Repository<User>,
+    @Inject(USER_PROFILE_REPOSITORY)
+    private readonly userProfileRepository: Repository<UserProfile>,
+    @Inject(AUTH_TOKEN_REPOSITORY)
+    private readonly authTokenRepository: Repository<AuthToken>,
+    @Inject(SOCIAL_ACCOUNT_REPOSITORY)
+    private readonly socialAccountRepository: Repository<SocialAccount>,
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
   ) {}
 
-  async socialRegister(
+  async register(
     { profile, provider, accessToken }: SocialRegisterTokenData,
-    registerUserDto: RegisterUserProfileDto,
-    res: Response,
-  ): Promise<LoginDto> {
-    return dataSource.transaction(async (transactionalEntityManager) => {
-      const existedUser: boolean = await this.userService.isExistByEmail(
-        profile.email,
-      );
-      if (existedUser)
-        throw new UnprocessableEntityException('User Is Already Exists');
-      const user: User = userRepository.create({
-        email: profile.email,
-        name: profile.name,
-      });
-      const savedUser = await transactionalEntityManager.save(User, user);
-      const userProfile: UserProfile = userProfileRepository.create({
-        displayName: registerUserDto.displayName,
-        discordTag: registerUserDto.discordTag,
-        grade: registerUserDto.grade,
-        department: registerUserDto.department,
-        user: { id: savedUser.id },
-      });
-      if (profile.thumbnail) userProfile.thumbnail = profile.thumbnail;
-      const socialAccount: SocialAccount = socialAccountRepository.create({
-        socialId: profile.socialId,
-        provider: provider,
-        accessToken: accessToken,
-        userId: savedUser.id,
-      });
-      const authToken = authTokenRepository.create({
-        id: uuid(),
-        user: { id: savedUser.id },
-      });
-      await transactionalEntityManager.save(UserProfile, userProfile);
-      await transactionalEntityManager.save(SocialAccount, socialAccount);
-      await transactionalEntityManager.save(AuthToken, authToken);
-      const tokenDto: TokenDto = await this.tokenService.generateUserToken(
-        user,
-        userProfile,
-        authToken,
-      );
-      this.tokenService.setTokenCookie(res, tokenDto);
-      return new LoginDto(userProfile, tokenDto);
+    registerUserProfileDto: RegisterUserProfileDto,
+    isSocial = false,
+  ) {
+    const existedUser: User | null = await this.userRepository.findOneBy({
+      email: profile.email,
     });
+    if (existedUser)
+      throw new UnprocessableEntityException('User Is Already Exists');
+
+    const user: User = this.userRepository.create({
+      email: profile.email,
+      name: profile.name,
+    });
+
+    const userProfile: UserProfile = this.userProfileRepository.create({
+      displayName: registerUserProfileDto.displayName,
+      discordTag: registerUserProfileDto.discordTag,
+      grade: registerUserProfileDto.grade,
+      department: registerUserProfileDto.department,
+    });
+
+    const authToken: AuthToken = this.authTokenRepository.create({
+      id: uuid(),
+    });
+
+    const savedUserId: number = await this.userRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const savedUser = await transactionalEntityManager.save(user);
+
+        userProfile.userId = savedUser.id;
+        authToken.userId = savedUser.id;
+
+        if (isSocial) {
+          if (profile?.thumbnail)
+            this.userProfileRepository.merge(userProfile, {
+              thumbnail: profile?.thumbnail,
+            });
+          const socialAccount: SocialAccount =
+            this.socialAccountRepository.create({
+              socialId: profile.socialId,
+              provider: provider,
+              accessToken: accessToken,
+            });
+          socialAccount.userId = savedUser.id;
+          await transactionalEntityManager.save(socialAccount);
+        }
+
+        await transactionalEntityManager.save(userProfile);
+        await transactionalEntityManager.save(authToken);
+        return savedUser.id;
+      },
+    );
+    return this.userService.findOneByIdOrFail(savedUserId);
   }
 
   async socialLogin(
-    profile: SocialProfile,
     accessToken: string,
+    profile: SocialProfile,
     provider: string,
-    res: Response,
-  ) {
-    const existSocialAccount: boolean =
-      await socialAccountRepository.isExistByIdAndProvider(
-        profile.socialId,
-        provider,
-      );
-    if (existSocialAccount) {
-      const socialAccount: SocialAccount =
-        await socialAccountRepository.findOneByIdOrFail(profile.socialId);
-      const authToken: AuthToken =
-        await authTokenRepository.findOneByUserIdOrFail(socialAccount.user.id);
-      const tokenDto: TokenDto = await this.tokenService.generateUserToken(
-        socialAccount.user,
-        socialAccount.user.profile,
-        authToken,
-      );
-      this.tokenService.setTokenCookie(res, tokenDto);
-      return new LoginDto(socialAccount.user.profile, tokenDto);
-    }
-    const registerToken = this.tokenService.generateRegisterToken({
+  ): Promise<User | string> {
+    const existSocialAccount: SocialAccount =
+      await this.socialAccountRepository.findOne({
+        where: {
+          socialId: profile.socialId,
+          provider: provider,
+        },
+      });
+    if (existSocialAccount)
+      return this.userService.findOneByIdOrFail(existSocialAccount.userId);
+    return this.tokenService.generateRegisterToken({
       profile: profile,
       accessToken: accessToken,
       provider: 'google',
     });
-    res.cookie('registerToken', registerToken, {
-      maxAge: 1000 * 60 * 60 * 24,
-      httpOnly: true,
-    });
-    return { registerToken: registerToken };
-  }
-
-  async logOut(userId: number, res: Response): Promise<void> {
-    await this.tokenService.disabledAuthTokenByUserId(userId);
-    await this.tokenService.resetTokenCookie(res);
   }
 }

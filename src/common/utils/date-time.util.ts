@@ -11,6 +11,11 @@ export class DateTimeUtil {
     'yyyy-MM-dd HH:mm:ss',
   );
 
+  static toString(localDate: LocalDate | LocalDateTime): string {
+    if (!localDate) return null;
+    return localDate.toString();
+  }
+
   static toDate(localDate: LocalDate | LocalDateTime): Date {
     if (!localDate) return null;
     return convert(localDate).toDate();

@@ -6,7 +6,6 @@ import {
   HttpCode,
   Post,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import {
   AccessToken,
@@ -15,7 +14,6 @@ import {
 import { AuthService } from './auth.service';
 import {
   ApiCreatedResponse,
-  ApiHeader,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -34,6 +32,10 @@ import { Response } from 'express';
 import { RegisterAuth } from '../common/decorators/register-auth.decorator';
 import { ProfileResponse } from './res/profile.response';
 import { SocialProfileDto } from './dto/social-profile.dto';
+import { CookieUtil } from '../common/utils/cookie.util';
+import { TokenService } from '../token/token.service';
+import { TokenDto } from '../token/dto/token.dto';
+import User from '../entities/user.entity';
 
 @ApiInternalServerErrorResponse({
   description: '서버 에러입니다.',
@@ -42,26 +44,11 @@ import { SocialProfileDto } from './dto/social-profile.dto';
 @ApiTags('authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
-  @ApiOperation({ summary: '프로필 조회' })
-  @ApiOkResponse({
-    description: '프로필 조회에 성공하였습니다.',
-    type: ProfileResponse,
-  })
-  @ApiNotFoundResponse({
-    description: '요청 값을 찾을 수 없습니다.',
-  })
-  @RegisterAuth()
-  @Get('profile')
-  async getSocialProfile(
-    @RegisterToken('profile') profile: SocialProfileDto,
-  ): Promise<ResponseEntity<SocialProfileDto>> {
-    return ResponseEntity.OK_WITH_DATA(
-      '프로필 조회에 성공하였습니다.',
-      profile,
-    );
-  }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly tokenService: TokenService,
+    private readonly cookieUtil: CookieUtil,
+  ) {}
 
   @ApiOperation({ summary: '소셜 계정 등록' })
   @ApiCreatedResponse({
@@ -70,20 +57,43 @@ export class AuthController {
   })
   @RegisterAuth()
   @HttpCode(201)
-  @Post('')
+  @Post('social')
   async socialRegister(
     @RegisterToken() socialRegisterTokenData: SocialRegisterTokenData,
-    @Body() registerUserDto: RegisterUserProfileDto,
+    @Body() registerUserProfileDto: RegisterUserProfileDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<LoginDto>> {
-    const data: LoginDto = await this.authService.socialRegister(
+    const savedUser: User = await this.authService.register(
       socialRegisterTokenData,
-      registerUserDto,
-      res,
+      registerUserProfileDto,
+      true,
     );
+    const tokens: TokenDto = await this.tokenService.generateUserToken(
+      savedUser,
+    );
+    this.cookieUtil.setUserTokenCookie(res, tokens);
     return ResponseEntity.CREATED_WITH_DATA(
       '소셜 계정 등록에 성공하였습니다.',
-      data,
+      new LoginDto(savedUser, tokens),
+    );
+  }
+
+  @ApiOperation({ summary: '소셜 프로필 조회' })
+  @ApiOkResponse({
+    description: '소셜 프로필 조회에 성공하였습니다.',
+    type: ProfileResponse,
+  })
+  @ApiNotFoundResponse({
+    description: '요청 값을 찾을 수 없습니다.',
+  })
+  @RegisterAuth()
+  @Get('social/profile')
+  async getSocialProfile(
+    @RegisterToken('profile') profile: SocialProfileDto,
+  ): Promise<ResponseEntity<SocialProfileDto>> {
+    return ResponseEntity.OK_WITH_DATA(
+      '프로필 조회에 성공하였습니다.',
+      profile,
     );
   }
 
@@ -98,7 +108,8 @@ export class AuthController {
     @AccessToken('user_id') userId: number,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseEntity<string>> {
-    await this.authService.logOut(userId, res);
+    await this.tokenService.disabledAuthTokenByUserId(userId);
+    this.cookieUtil.resetTokenCookie(res);
     return ResponseEntity.OK_WITH('로그아웃에 성공하였습니다.');
   }
 }

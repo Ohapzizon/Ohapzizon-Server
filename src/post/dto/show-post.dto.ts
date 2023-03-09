@@ -1,10 +1,11 @@
 import { TargetGrade } from '../enum/target-grade';
 import { Exclude, Expose } from 'class-transformer';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { GROUP_ALL_POSTS, GROUP_POST } from '../enum/group-post';
 import { LocalDateTime } from '@js-joda/core';
-import { DateTimeUtil } from '../../common/utils/date-time.util';
 import { PostStatus } from '../enum/post-status';
+import Post from '../../entities/post.entity';
+import { GROUP_ALL_POSTS, GROUP_POST } from '../../common/constants';
+import { DateTimeUtil } from '../../common/utils/date-time.util';
 
 @Expose({ groups: [GROUP_POST, GROUP_ALL_POSTS] })
 export class ShowPostDto {
@@ -38,21 +39,35 @@ export class ShowPostDto {
 
   @ApiHideProperty()
   @Exclude()
-  private readonly _createdAt: Date;
+  private readonly _createdAt: LocalDateTime;
 
   @ApiHideProperty()
   @Exclude()
-  private readonly _updatedAt: Date;
+  private readonly _updatedAt: LocalDateTime;
 
   @ApiHideProperty()
   @Exclude()
   private readonly _writer: string;
 
+  constructor(post: Post) {
+    this._postId = post.id;
+    this._title = post.title;
+    this._contents = post.contents;
+    this._limit = post.limit;
+    this._status = post.status;
+    this._targetGrade = post.targetGrade;
+    this._reserveDateTime = post.reserveDateTime;
+    this._createdAt = post.getCreatedAt();
+    this._updatedAt = post.getUpdatedAt();
+    this._writer = post.writer.profile.displayName;
+  }
+
   @ApiProperty({
     name: 'postId',
+    description: 'postId',
     example: 1,
   })
-  @Expose({ name: 'postId ' })
+  @Expose()
   get postId(): number {
     return this._postId;
   }
@@ -108,13 +123,13 @@ export class ShowPostDto {
   }
 
   @ApiProperty({
-    name: 'reserveDate',
+    name: 'reserveDateTime',
     description: '예약일자',
     example: LocalDateTime.now(),
   })
   @Expose()
-  get reserveDateTime(): LocalDateTime {
-    return this._reserveDateTime;
+  get reserveDateTime(): string {
+    return DateTimeUtil.toString(this._reserveDateTime);
   }
 
   @ApiProperty({
@@ -123,8 +138,8 @@ export class ShowPostDto {
     example: LocalDateTime.now(),
   })
   @Expose()
-  get createdAt(): LocalDateTime {
-    return DateTimeUtil.toLocalDateTime(this._createdAt);
+  get createdAt(): string {
+    return DateTimeUtil.toString(this._createdAt);
   }
 
   @ApiProperty({
@@ -133,8 +148,8 @@ export class ShowPostDto {
     example: LocalDateTime.now(),
   })
   @Expose()
-  get updatedAtAt(): LocalDateTime {
-    return DateTimeUtil.toLocalDateTime(this._updatedAt);
+  get updatedAt(): string {
+    return DateTimeUtil.toString(this._updatedAt);
   }
 
   @ApiProperty({
